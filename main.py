@@ -72,7 +72,7 @@ def chat_completions():
             print(reply)
             yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
         yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("> GPT-4 Response: Thinking"), separators=(',' ':'))
+        yield 'data: %s\n\n' % json.dumps(streamer("> GPT-4 Down because i dont study."), separators=(',' ':'))
 
         while ans == {}:
 
