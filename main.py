@@ -89,7 +89,7 @@ def chat_completions():
         yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
         
-        data['jailbreakConversationId'] = json_body['jailbreakConversationId']
+        # data['jailbreakConversationId'] = json_body['jailbreakConversationId']
         data['parentMessageId'] = json_body['messageId']
 
         completion_timestamp = int(time.time())
