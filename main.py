@@ -19,12 +19,6 @@ def extract_links(string):
     links = re.findall(pattern, string)
     return links
 
-def post_requests():
-    global ans
-    global data
-    r=requests.post(api_endpoint, json=data)
-    ans=r.json()
-    return r.json()
 
 def streamer(tok):
         completion_timestamp = int(time.time())
@@ -60,67 +54,59 @@ def chat_completions():
     data['message']= messages[-1]['content']
     print(data)
 
-    t = threading.Thread(target=post_requests)
-    t.start()
-
     def stream():
-        global ans
         global data
-        prev_text = ""
-            
-        yield 'data: %s\n\n' % json.dumps(streamer("> GPT-3 Response:"), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+        global nline
 
-        for query in chatbot.ask(messages[-1]['content'],):
-            reply = query["message"][len(prev_text) :]
-            prev_text = query["message"]
-            print(reply)
-            yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("> GPT-4 Response: Thinking"), separators=(',' ':'))
+        with requests.post(api_endpoint, json=data, stream=True) as resp:
+            for line in resp.iter_lines():
+                if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                    line=line.decode("utf-8")
+                    if rf"\n" not in line:
+                        if nline:
+                            msg = line.replace("data: ","").strip().strip('"')
 
-        while ans == {}:
+                            token = " \n\n\n {msg}".format(msg=msg)
+                            print("nline used")
+                            nline=False
+                        else:
+                            token = line.replace("data: ","").strip().strip('"')
+                    else:
+                        msg = line.replace("data: ","").strip().strip('"')
+                        print("nline dtected")
+                        token=msg.split(rf"\n")[0]
 
-            yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
-            time.sleep(1)
+                        nline=True
+                    print(token)
 
-        json_body=ans
+                    completion_timestamp = int(time.time())
+                    completion_id = ''.join(random.choices(
+                        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=28))
 
-        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                    completion_data = {
+                        'id': f'chatcmpl-{completion_id}',
+                        'object': 'chat.completion.chunk',
+                        'created': completion_timestamp,
+                        'model': 'gpt-3.5-turbo-0301',
+                        'choices': [
+                            {
+                                'delta': {
+                                    'content':token
+                                },
+                                'index': 0,
+                                'finish_reason': None
+                            }
+                        ]
+                    }
 
-        
-        # data['jailbreakConversationId'] = json_body['jailbreakConversationId']
+                    # yield 'data: Hi' % json.dumps(completion_data, separators=(',' ':'))
+                    yield 'data: %s\n\n' % json.dumps(completion_data, separators=(',' ':'))
+                elif line and "conversationId"  in line.decode():
+                    json_body = line.decode().replace("data: ","")
+                    print("json_body done")
+
+        json_body = json.loads(json_body)
         data['parentMessageId'] = json_body['messageId']
-
-        completion_timestamp = int(time.time())
-        completion_id = ''.join(random.choices(
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=28))
-        links = extract_links(json_body['response'])
-
-        completion_data = {
-            'id': f'chatcmpl-{completion_id}',
-            'object': 'chat.completion.chunk',
-            'created': completion_timestamp,
-            'model': 'gpt-3.5-turbo-0301',
-            'choices': [
-                {
-                    'delta': {
-                        'content':  json_body['response']
-                    },
-                    'index': 0,
-                    'finish_reason': None
-                }
-            ]
-        }
-
-        yield 'data: %s\n\n' % json.dumps(completion_data, separators=(',' ':'))
-
-        aaa = 1
-        print(links)
-
-
-
-        ans={}
 
     return app.response_class(stream(), mimetype='text/event-stream')
 
@@ -153,12 +139,3 @@ def models():
 
 
 
-
-if __name__ == '__main__':
-    config = {
-        'host': '0.0.0.0',
-        'port': 1337,
-        'debug': True
-    }
-
-    app.run(**config)
