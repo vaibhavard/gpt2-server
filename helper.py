@@ -5,10 +5,10 @@ ans={}
 model = {
     "data": [
         {
-            "id": "gpt-3.5-turbo",
+            "id": "GPT-4-web",
             "object": "model",
             "owned_by": "reversed",
-            "tokens": 8192,
+            "tokens": 81792,
             "fallbacks": [
                 "gpt-3.5-turbo-16k"
             ],
@@ -23,6 +23,43 @@ model = {
             "permission": []
         },
 
+        {
+            "id": "GPT-3.5",
+            "object": "model",
+            "owned_by": "reversed",
+            "tokens": 81792,
+            "fallbacks": [
+                "gpt-3.5-turbo-16k"
+            ],
+            "endpoints": [
+                "/api/v1/chat/completions"
+            ],
+            "limits": [
+                "2/minute",
+                "300/day"
+            ],
+            "public": True,
+            "permission": []
+        },
+        
+        {
+            "id": "GPT-4",
+            "object": "model",
+            "owned_by": "reversed",
+            "tokens": 81792,
+            "fallbacks": [
+                "gpt-3.5-turbo-16k"
+            ],
+            "endpoints": [
+                "/api/v1/chat/completions"
+            ],
+            "limits": [
+                "2/minute",
+                "300/day"
+            ],
+            "public": True,
+            "permission": []
+        },
     ],
     "object": "list"
 }
