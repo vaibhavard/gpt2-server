@@ -87,7 +87,7 @@ def chat_completions():
                         'id': f'chatcmpl-{completion_id}',
                         'object': 'chat.completion.chunk',
                         'created': completion_timestamp,
-                        'model': 'gpt-3.5-turbo-0301',
+                        'model': 'gpt-4',
                         'choices': [
                             {
                                 'delta': {
@@ -105,8 +105,8 @@ def chat_completions():
                     json_body = line.decode().replace("data: ","")
                     print("json_body done")
 
-        json_body = json.loads(json_body)
-        data['parentMessageId'] = json_body['messageId']
+                    json_body = json.loads(json_body)
+                    data['parentMessageId'] = json_body['messageId']
 
     return app.response_class(stream(), mimetype='text/event-stream')
 
