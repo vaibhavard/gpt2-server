@@ -34,4 +34,4 @@ data = {
     # "clientOptions.promptPrefix":"You are a cute assistant.",
     # "systemMessage":"You are a cute assistant."
 }
-api_endpoint = "http://7040-182-69-179-37.ngrok-free.app/conversation"
+api_endpoint = "https://bing-ai-a53d.onrender.com/conversation"
