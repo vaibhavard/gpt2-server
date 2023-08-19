@@ -31,6 +31,7 @@ python_boolean_to_json = {
 }
 data = {
     'jailbreakConversationId':json.dumps(python_boolean_to_json['true']),
+    "stream":True,
     # "clientOptions.promptPrefix":"You are a cute assistant.",
     # "systemMessage":"You are a cute assistant."
 }
