@@ -81,15 +81,19 @@ def chat_completions():
         sent = False
         sent2=False
         sent3=False
+      
 
         while worded == "":
+            if sent2:
+              yield 'data: %s\n\n' % json.dumps(streamer("🔃"), separators=(',' ':'))
+              time.sleep(1)
+
             if 10>time.time()-t>9 and not sent:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait.Server had gone to sleep becuase of inactivity."), separators=(',' ':'))
                 yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent=True
             elif 20>time.time()-t>19 and not sent2:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Server is booting.."), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent2=True
 
             elif 60>time.time()-t>59 and not sent3:
@@ -99,6 +103,9 @@ def chat_completions():
                 break
 
             pass
+
+        yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
+
         while worded!="":
 
             if prev_word!=worded:
