@@ -130,3 +130,5 @@ def streamer(tok):
             ]
         }
         return completion_data
+
+worded=""
