@@ -85,11 +85,11 @@ def chat_completions():
         while worded == "":
             if 10>time.time()-t>9 and not sent:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait"), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent=True
             elif 20>time.time()-t>19 and not sent2:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Server is booting.."), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent2=True
 
             elif 60>time.time()-t>59 and not sent3:
