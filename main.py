@@ -14,6 +14,45 @@ chatbot = Chatbot(config={
 
 
 
+def send_req():
+    global data
+    global nline
+    global worded
+    ddgd=""
+    worded=""
+
+    with requests.post(api_endpoint, json=data, stream=True) as resp:
+        for line in resp.iter_lines():
+            if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                line=line.decode("utf-8")
+
+                if rf"\n" not in line:
+                    if nline:
+                        msg = line.replace("data: ","").strip().strip('"')
+
+                        token = " \n\n\n {ddgd}{msg}".format(ddgd=ddgd,msg=msg)
+                        print("nline used")
+                        nline=False
+                    else:
+                        token = line.replace("data: ","").strip().strip('"')
+                else:
+                    msg = line.replace("data: ","").strip().strip('"')
+                    print("nline dtected")
+                    token=msg.split(rf"\n")[0]
+                    ddgd=msg.split(rf"\n")[1]
+                    print(ddgd)
+
+                    nline=True
+                time.sleep(0.1)
+
+                worded=worded+token
+            elif line and "conversationId"  in line.decode():
+                json_body = line.decode().replace("data: ","")
+                json_body = json.loads(json_body)
+                data['parentMessageId'] = json_body['messageId']
+                print("Conversation history saved")
+
+    worded=""
 
 
 
@@ -35,39 +74,54 @@ def chat_completions():
     print(data["message"])
 
     def stream_gpt4():
-        global data
-        global nline
+        prev_word=""
+        t1 = threading.Thread(target=send_req)
+        t1.start()
+        t=time.time()
+        sent = False
+        sent2=False
+        sent3=False
 
-        with requests.post(api_endpoint, json=data, stream=True) as resp:
-            for line in resp.iter_lines():
-                if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                    line=line.decode("utf-8")
-                    if rf"\n" not in line:
-                        if nline:
-                            msg = line.replace("data: ","").strip().strip('"')
+        while worded == "":
+            if 10>time.time()-t>9 and not sent:
+                yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n"), separators=(',' ':'))
+                sent=True
+            elif 20>time.time()-t>19 and not sent2:
+                yield 'data: %s\n\n' % json.dumps(streamer("> Server is booting.."), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n"), separators=(',' ':'))
+                sent2=True
 
-                            token = " \n\n\n {msg}".format(msg=msg)
-                            print("nline used")
-                            nline=False
-                        else:
-                            token = line.replace("data: ","").strip().strip('"')
-                    else:
-                        msg = line.replace("data: ","").strip().strip('"')
-                        print("nline dtected")
-                        token=msg.split(rf"\n")[0]
+            elif 60>time.time()-t>59 and not sent3:
+                yield 'data: %s\n\n' % json.dumps(streamer("> Server Has been restarted because of overload.Now you can ask your question."), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n"), separators=(',' ':'))
+                sent3=False
+                break
 
-                        nline=True
-                    print(token)
+            pass
+        while worded!="":
+
+            if prev_word!=worded:
+                message = worded[len(prev_word) :]
+                yield 'data: %s\n\n' % json.dumps(streamer(message), separators=(',' ':'))
+
+
+                prev_word=worded
+
+            
+
+
+
+
 
 
 
                     # yield 'data: Hi' % json.dumps(completion_data, separators=(',' ':'))
-                    yield 'data: %s\n\n' % json.dumps(streamer(token), separators=(',' ':'))
-                elif line and "conversationId"  in line.decode():
-                    json_body = line.decode().replace("data: ","")
-                    json_body = json.loads(json_body)
-                    data['parentMessageId'] = json_body['messageId']
-                    print("Conversation history saved")
+                # elif line and "conversationId"  in line.decode():
+                #     json_body = line.decode().replace("data: ","")
+                #     json_body = json.loads(json_body)
+                #     data['parentMessageId'] = json_body['messageId']
+                #     print("Conversation history saved")
 
     def stream_gpt3():
         global data
@@ -114,3 +168,12 @@ def models():
     return model
 
 
+
+if __name__ == '__main__':
+    config = {
+        'host': '0.0.0.0',
+        'port': 1337,
+        'debug': True
+    }
+
+    app.run(**config)
