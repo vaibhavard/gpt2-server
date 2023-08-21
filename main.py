@@ -84,7 +84,7 @@ def chat_completions():
 
         while worded == "":
             if 10>time.time()-t>9 and not sent:
-                yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait.Server had gone to sleep becuase of inactivity."), separators=(',' ':'))
                 yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent=True
             elif 20>time.time()-t>19 and not sent2:
