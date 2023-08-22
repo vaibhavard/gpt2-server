@@ -39,7 +39,7 @@ def send_req():
                     msg = line.replace("data: ","").strip().strip('"')
                     print("nline dtected")
                     token=msg.split(rf"\n")[0]
-                    ddgd=msg.split(rf"\n")[1]
+                    ddgd=msg.split(rf"\n",1)[-1]
                     print(ddgd)
 
                     nline=True
@@ -47,6 +47,7 @@ def send_req():
 
                 worded=worded+token
             elif line and "conversationId"  in line.decode():
+                print(worded)
                 json_body = line.decode().replace("data: ","")
                 json_body = json.loads(json_body)
                 data['parentMessageId'] = json_body['messageId']
