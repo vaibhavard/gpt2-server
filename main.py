@@ -43,7 +43,7 @@ def send_req():
                     print(ddgd)
 
                     nline=True
-                time.sleep(0.1)
+                time.sleep(0.22)
 
                 worded=worded+token
             elif line and "conversationId"  in line.decode():
