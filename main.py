@@ -40,6 +40,8 @@ def send_req():
                     print("nline dtected")
                     token=msg.split(rf"\n",1)[-1]
                     ddgd=msg.split(rf"\n",1)[-1]
+                    ddgd=ddgd.replace(rf"\n","")
+                    token=token.replace(rf"\n","")
                     print(ddgd)
 
                     nline=True
