@@ -38,7 +38,7 @@ def send_req():
                 else:
                     msg = line.replace("data: ","").strip().strip('"')
                     print("nline dtected")
-                    token=msg.split(rf"\n")[0]
+                    token=msg.split(rf"\n",1)[-1]
                     ddgd=msg.split(rf"\n",1)[-1]
                     print(ddgd)
 
