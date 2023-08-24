@@ -19,6 +19,7 @@ def send_req():
     global nline
     global worded
     ddgd=""
+    ee=""
     worded=""
     pattern = r'https:\s+//'
 
@@ -26,7 +27,11 @@ def send_req():
         for line in resp.iter_lines():
             if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
                 line=line.decode()
-                parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"") + "}")
+                try:
+                    parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"") + "}")
+                except Exception as e:
+                    parsed_data=""
+                    ee=e
                 if parsed_data!={}:
                     print(parsed_data['data'])
                     msg=parsed_data['data']
@@ -43,6 +48,8 @@ def send_req():
                 data['parentMessageId'] = json_body['messageId']
                 print("Conversation history saved")
 
+    worded=ee
+    time.sleep(0.13)
     worded=""
 
 
