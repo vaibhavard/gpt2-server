@@ -20,36 +20,22 @@ def send_req():
     global worded
     ddgd=""
     worded=""
+    pattern = r'https:\s+//'
 
     with requests.post(api_endpoint, json=data, stream=True) as resp:
         for line in resp.iter_lines():
             if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                line=line.decode("utf-8")
-
-                if rf"\n" not in line:
-                    if nline:
-                        msg = line.replace("data: ","").strip().strip('"')
-
-                        token = " \n\n\n {ddgd}{msg}".format(ddgd=ddgd,msg=msg)
-                        print("nline used")
-                        nline=False
-                    else:
-                        token = line.replace("data: ","").strip().strip('"')
-                else:
-                    msg = line.replace("data: ","").strip().strip('"')
-                    print("nline dtected")
-                    token=msg.split(rf"\n",1)[-1]
-                    ddgd=msg.split(rf"\n",1)[-1]
-                    if "]" in ddgd:
-                      ddgd=ddgd.replace(rf"\n","]")
-                    ddgd=ddgd.replace(rf"\n","")
-                    token=token.replace(rf"\n","")
-                    print(ddgd)
-
-                    nline=True
-                time.sleep(0.1)
-
-                worded=worded+token
+                line=line.decode()
+                parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"") + "}")
+                if parsed_data!={}:
+                    print(parsed_data['data'])
+                    msg=parsed_data['data']
+                    try:
+                        msg = re.sub(pattern, 'https://', msg)
+                    except:
+                        pass
+                    worded=worded+msg
+                time.sleep(0.13)
             elif line and "conversationId"  in line.decode():
                 print(worded)
                 json_body = line.decode().replace("data: ","")
@@ -94,11 +80,11 @@ def chat_completions():
               time.sleep(1)
 
             if 10>time.time()-t>9 and not sent:
-                yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait.Server had gone to sleep becuase of inactivity."), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> Please Wait."), separators=(',' ':'))
                 yield 'data: %s\n\n' % json.dumps(streamer("\n\n\n"), separators=(',' ':'))
                 sent=True
             elif 20>time.time()-t>19 and not sent2:
-                yield 'data: %s\n\n' % json.dumps(streamer("> Server is booting.."), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> Server had gone to sleep becuase of inactivity.Server is booting.."), separators=(',' ':'))
                 sent2=True
 
             elif 60>time.time()-t>59 and not sent3:
