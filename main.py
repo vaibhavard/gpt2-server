@@ -14,6 +14,16 @@ chatbot = Chatbot(config={
 
 
 
+def extract_links(text):
+    # Regular expression pattern to match URLs
+    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+    # Find all matches of the URL pattern in the text
+    urls = re.findall(url_pattern, text)
+    return urls
+
+
+
 def send_req():
     global data
     global nline
@@ -68,6 +78,10 @@ def chat_completions():
 
     data['message']= messages[-1]['content']
     print(data["message"])
+    links = extract_links(data['message'])
+    if links!= [] :
+      print(links[0])
+      data["imageURL]=links[0]
 
     def stream_gpt4():
         global worded
