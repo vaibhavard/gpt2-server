@@ -26,6 +26,9 @@ def send_req():
         for line in resp.iter_lines():
             if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
                 line=line.decode()
+                if "https " in line:
+                  print(line)
+                  ee=line
                 try:
                     parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"") + "}")
                 except Exception as e:
