@@ -68,6 +68,7 @@ def chat_completions():
     print(data["message"])
 
     def stream_gpt4():
+        global worded
         prev_word=""
         t1 = threading.Thread(target=send_req)
         t1.start()
