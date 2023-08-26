@@ -81,7 +81,7 @@ def chat_completions():
     links = extract_links(data['message'])
     if links!= [] :
       print(links[0])
-      data["imageURL]=links[0]
+      data["imageURL"]=links[0]
 
     def stream_gpt4():
         global worded
