@@ -21,7 +21,6 @@ def send_req():
     ddgd=""
     ee=""
     worded=""
-    pattern = r'https:\s+//'
 
     with requests.post(api_endpoint, json=data, stream=True) as resp:
         for line in resp.iter_lines():
@@ -35,10 +34,7 @@ def send_req():
                 if parsed_data!={}:
                     print(parsed_data['data'])
                     msg=parsed_data['data']
-                    try:
-                        msg = re.sub(pattern, 'https://', msg)
-                    except:
-                        pass
+
                     worded=worded+msg
                 time.sleep(0.13)
             elif line and "conversationId"  in line.decode():
@@ -79,7 +75,8 @@ def chat_completions():
         sent = False
         sent2=False
         sent3=False
-      
+        pattern = r'https:\s+//'
+
 
         while worded == "":
             if sent2:
@@ -106,13 +103,17 @@ def chat_completions():
 
         while worded!="":
 
+
             if prev_word!=worded:
                 message = worded[len(prev_word) :]
                 yield 'data: %s\n\n' % json.dumps(streamer(message), separators=(',' ':'))
 
 
                 prev_word=worded
-
+                try:
+                    worded = re.sub(pattern, 'https://', worded)
+                except:
+                    pass
             
 
 
