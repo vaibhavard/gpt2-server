@@ -43,7 +43,7 @@ def send_req():
                 except Exception as e:
                     parsed_data={"data":"*"}
                     ee=e
-                if parsed_data!={}:
+                if parsed_data!={} and parsed_data.get("data") != None:
                     print(parsed_data['data'])
                     msg=parsed_data['data'].replace("ui34d","://")
 
