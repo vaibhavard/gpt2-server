@@ -31,30 +31,37 @@ def send_req():
     ddgd=""
     ee=""
     worded=""
+    try:
 
-    with requests.post(api_endpoint, json=data, stream=True) as resp:
-        for line in resp.iter_lines():
-            if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                line=line.decode()
-                line=line.replace("://","ui34d")
+        with requests.post(api_endpoint, json=data, stream=True) as resp:
+            for line in resp.iter_lines():
+                if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                    line=line.decode()
+                    line=line.replace("://","ui34d")
 
-                try:
-                    parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
-                except Exception as e:
-                    parsed_data={"data":"*"}
-                    ee=e
-                if parsed_data!={} and parsed_data.get("data") != None:
-                    print(parsed_data['data'])
-                    msg=parsed_data['data'].replace("ui34d","://")
+                    try:
+                        parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
+                    except Exception as e:
+                        parsed_data={"data":"*"}
+                        ee=str(e)
+                    if parsed_data!={} and parsed_data.get("data") != None:
+                        print(parsed_data['data'])
+                        msg=parsed_data['data'].replace("ui34d","://")
 
-                    worded=worded+msg
-                time.sleep(0.13)
-            elif line and "conversationId"  in line.decode():
-                print(worded)
-                json_body = line.decode().replace("data: ","")
-                json_body = json.loads(json_body)
-                data['parentMessageId'] = json_body['messageId']
-                print("Conversation history saved")
+                        worded=worded+msg
+                    time.sleep(0.13)
+                elif line and "conversationId"  in line.decode():
+                    print(worded)
+                    json_body = line.decode().replace("data: ","")
+                    json_body = json.loads(json_body)
+                    data['parentMessageId'] = json_body['messageId']
+                    print("Conversation history saved")
+
+    except Exception as e:
+        worded = f"Error {str(e)}"
+        time.sleep(0.4)
+        worded=""
+
 
     worded=ee
     time.sleep(0.13)
@@ -107,6 +114,23 @@ def chat_completions():
             elif 20>time.time()-t>19 and not sent2:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Server had gone to sleep becuase of inactivity.Server is booting.."), separators=(',' ':'))
                 sent2=True
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+
+                yield 'data: %s\n\n' % json.dumps(streamer("> GPT-3 Response"), separators=(',' ':'))
+
+                global data
+                prev_text = ""
+
+                for query in chatbot.ask(messages[-1]['content'],):
+                    reply = query["message"][len(prev_text) :]
+                    prev_text = query["message"]
+                    print(reply)
+                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+                    
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> GPT-4 Response"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+
 
             elif 60>time.time()-t>59 and not sent3:
                 yield 'data: %s\n\n' % json.dumps(streamer("> Server Has been restarted because of overload.Now you can ask your question."), separators=(',' ':'))
