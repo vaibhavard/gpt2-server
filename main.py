@@ -131,6 +131,11 @@ def chat_completions():
                     worded = re.sub(pattern, 'https://', worded)
                 except:
                     pass
+                  
+            if 350>time.time()-t>340 :
+              worded=""
+              break
+
             
 
 
