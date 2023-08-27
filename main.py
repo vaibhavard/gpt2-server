@@ -117,6 +117,7 @@ def chat_completions():
                 yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
                 yield 'data: %s\n\n' % json.dumps(streamer("> GPT-3 Response"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
                 global data
                 prev_text = ""
