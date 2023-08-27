@@ -39,7 +39,7 @@ def send_req():
                 line=line.replace("://","ui34d")
 
                 try:
-                    parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"") + "}")
+                    parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
                 except Exception as e:
                     parsed_data={"data":"*"}
                     ee=e
