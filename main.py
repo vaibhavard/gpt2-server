@@ -42,7 +42,7 @@ def send_req():
                     try:
                         parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
                     except Exception as e:
-                        parsed_data={"data":"*"}
+                        parsed_data={"data":"."}
                         ee=str(e)
                     if parsed_data!={} and parsed_data.get("data") != None:
                         print(parsed_data['data'])
