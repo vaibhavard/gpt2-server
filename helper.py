@@ -7,7 +7,7 @@ import random
 #variables
 nline = False
 ans={}
-api_endpoint = "https://intadocker.onrender.com/conversation"
+api_endpoint = "https://intagpt.onrender.com/conversation"
 model = {
     "data": [
         {
