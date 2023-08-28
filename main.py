@@ -51,7 +51,10 @@ def send_req():
                         worded=worded+msg
                     time.sleep(0.13)
                 elif line and "conversationId"  in line.decode():
-                    print(worded)
+                    try:
+                        worded = worded + "\n >" + json_body["details"]["adaptiveCards"][0]["body"][1]["text"]
+                    except:
+                        pass
                     json_body = line.decode().replace("data: ","")
                     json_body = json.loads(json_body)
                     data['parentMessageId'] = json_body['messageId']
