@@ -96,6 +96,7 @@ def chat_completions():
 
     def stream_gpt4():
         global worded
+        global data
         prev_word=""
         t1 = threading.Thread(target=send_req)
         t1.start()
@@ -164,6 +165,8 @@ def chat_completions():
             if 350>time.time()-t>340 :
               worded=""
               break
+            
+        del data["imageURL"]      
 
             
 
