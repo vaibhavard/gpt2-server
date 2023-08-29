@@ -165,8 +165,10 @@ def chat_completions():
             if 350>time.time()-t>340 :
               worded=""
               break
-            
-        del data["imageURL"]      
+        try:    
+          del data["imageURL"]   
+        except:
+          pass
 
             
 
