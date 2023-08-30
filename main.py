@@ -62,9 +62,20 @@ def send_req():
                     print("Conversation history saved")
 
     except Exception as e:
-        worded = f"Error {str(e)}"
+        global data
+        prev_text = ""
+
+        for query in chatbot.ask(data["message"],):
+            reply = query["message"][len(prev_text) :]
+            prev_text = query["message"]
+            worded=worded+reply
+            time.sleep(0.13)
+
         time.sleep(0.4)
+        worded=worded+str(e)
+        time.sleep(0.1)
         worded=""
+
 
 
     worded=ee
