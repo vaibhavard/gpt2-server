@@ -71,7 +71,6 @@ def send_req():
                     print("Conversation history saved")
 
     except Exception as e:
-        global data
         prev_text = ""
 
         for query in chatbot.ask(data["message"],):
