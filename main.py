@@ -68,7 +68,8 @@ def send_req():
                         for i in range(x):
                             a = a + f"""[^{i}^]"""
                         worded=worded+"\n"+a+para
-                    except:
+                    except Exception as e:
+                        print(e)
                         pass
                     data['parentMessageId'] = json_body['messageId']
                     print("Conversation history saved")
