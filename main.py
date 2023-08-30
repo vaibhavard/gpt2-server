@@ -55,23 +55,25 @@ def send_req():
                     json_body = line.decode().replace("data: ","")
                     json_body = json.loads(json_body)
                     try:
-                        ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"]
+                        ss = x["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
                         links = extract_links(ss)
-                        para=""
+                        para="\n\n"
                         x=0
                         for lnk in links:
                             x=x+1
                             para=para+f"""[^{x}^]: {lnk}
                             
-                        """
-                        worded=worded+"\n"+para
+"""
+                        a="Links:"
+                        for i in range(x):
+                            a = a + f"""[^{i}^]"""
+                        worded=worded+"\n"+a+para
                     except:
                         pass
                     data['parentMessageId'] = json_body['messageId']
                     print("Conversation history saved")
 
     except Exception as e:
-        print(e)
         prev_text = ""
 
         for query in chatbot.ask(data["message"],):
