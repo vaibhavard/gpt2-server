@@ -72,7 +72,7 @@ def send_req():
             time.sleep(0.13)
 
         time.sleep(0.4)
-        worded=worded+str(e)
+        worded=worded+"\n\n" + ">"+str(e)
         time.sleep(0.1)
         worded=""
 
