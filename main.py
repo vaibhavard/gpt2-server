@@ -54,7 +54,7 @@ def send_req():
                     json_body = line.decode().replace("data: ","")
                     json_body = json.loads(json_body)
                     try:
-                        ss = x["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
+                        ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
                         links = extract_links(ss)
                         para="\n\n"
                         x=0
