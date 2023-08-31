@@ -64,7 +64,7 @@ def send_req():
                             
 """
                         a="Links:"
-                        for i in range(x):
+                        for i in range(1,x+1):
                             a = a + f"""[^{i}^]"""
                         worded=worded+"\n"+a+para
                     except Exception as e:
