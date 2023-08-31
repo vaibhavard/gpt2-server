@@ -218,11 +218,11 @@ def chat_completions():
             yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
         yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
-    if "/clear" in data["message"]:
+    if "/clear" in data["message"] and "gpt-4" in model and len(messages) <= 2:
         data=backup
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
     
-    if "gpt-4" in model:
+    if "gpt-4" in model and len(messages) > 2:
         return app.response_class(stream_gpt4(), mimetype='text/event-stream')
     elif "gpt-3.5" in model:
         return app.response_class(stream_gpt3(), mimetype='text/event-stream')
