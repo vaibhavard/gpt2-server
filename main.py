@@ -221,7 +221,7 @@ def chat_completions():
         data=backup
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
     elif "gpt-4" in model and len(messages) =< 2:
-        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared❌'), separators=(',' ':'))
 
 
     if "gpt-4" in model and len(messages) > 2:
