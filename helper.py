@@ -2,7 +2,7 @@ import json
 import requests
 import time
 import random
-uploaded_image=""
+uploaded_image=''
 
 #variables
 nline = False
