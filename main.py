@@ -227,7 +227,7 @@ def chat_completions():
 
         try:    
           del data["imageURL"]   
-          del data["imagebase64"]
+          del data["imageBase64"]
         except:
           pass
 
