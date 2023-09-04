@@ -129,6 +129,8 @@ def chat_completions():
     def stream_gpt4():
         global data
         prev_word=""
+        global uploaded_image
+
         t=time.time()
         pattern = r'https:\s+//'
 
@@ -233,6 +235,7 @@ def chat_completions():
         except:
           pass
         try:
+          uploaded_image=""
           del data["imageBase64"]
         except:
             pass
