@@ -159,6 +159,7 @@ def chat_completions():
                                 parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
                             except Exception as e:
                                 parsed_data={"data":"."}
+                                model="gpt-3"
                                 print(e)
                                 ee=str(e)
                             if parsed_data!={} and parsed_data.get("data") != None:
@@ -208,7 +209,9 @@ def chat_completions():
                 yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
                 yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
 
-        else:
+        if model=="gpt-3":
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+
             try:
                 prev_text = ""
 
@@ -227,9 +230,13 @@ def chat_completions():
 
         try:    
           del data["imageURL"]   
-          del data["imageBase64"]
         except:
           pass
+        try:
+          del data["imageBase64"]
+        except:
+            pass
+
 
 
 
