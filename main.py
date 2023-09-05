@@ -184,7 +184,7 @@ def chat_completions():
                                     x=x+1
                                     para=para+f"""[^{x}^]: {lnk}
                                     
-        """
+"""
                                 a="Links:"
                                 for i in range(1,x+1):
                                     a = a + f"""[^{i}^]"""
