@@ -105,6 +105,7 @@ def send_req():
 def chat_completions():
     global data
     global uploaded_image
+    global processed_text
 
 
     streaming = request.json.get('stream', True)
@@ -124,12 +125,15 @@ def chat_completions():
     elif uploaded_image!="":
       data["imageBase64"]=uploaded_image
       print("UPLOADING IMAGE..")
+    elif processed_text !="":
+        data["context"]=processed_text
 
 
     def stream_gpt4():
         global data
         prev_word=""
         global uploaded_image
+        global processed_text
 
         t=time.time()
         pattern = r'https:\s+//'
@@ -239,6 +243,12 @@ def chat_completions():
           del data["imageBase64"]
         except:
             pass
+        if random.randint(1,4):
+            try:
+                processed_text=""
+                del data["context"]
+            except:
+                pass
 
 
 
@@ -257,6 +267,12 @@ def chat_completions():
     if "/clear" in data["message"] and "gpt-4" in model :
         data=backup
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+    
+    if "/upload" in data["message"] and "gpt-4" in model :
+        return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
+    if "/context" in data["message"] and "gpt-4" in model :
+        return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
+    
     elif "gpt-4" in model and len(messages) <= 2:
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared❌'), separators=(',' ':'))
 
@@ -278,6 +294,22 @@ def hello_name(name):
    url = "https://"+name+"/conversation"
    api_endpoint=url
    return f'{api_endpoint}'
+
+@app.route('/context', methods=['POST'])
+def my_form_post():
+    global processed_text
+    text = request.form['text']
+    processed_text = text
+    return "The context has been added."
+
+@app.route('/context')
+def my_form():
+    return '''
+<form method="POST">
+    <textarea name="text"></textarea>
+    <input type="submit">
+</form>
+'''
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
