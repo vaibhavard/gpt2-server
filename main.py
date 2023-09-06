@@ -142,7 +142,7 @@ def chat_completions():
         ee=""
 
         try:
-            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
+            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=9)
             print(xx.text)
         except :
             model="gpt-3"
