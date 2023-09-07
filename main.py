@@ -101,7 +101,7 @@ def send_req():
 
 
 
-@app.route("/v1/chat/completions", methods=['POST'])
+@app.route("/chat/completions", methods=['POST'])
 def chat_completions():
     global data
     global uploaded_image
@@ -113,12 +113,18 @@ def chat_completions():
 
 
     messages = request.json.get('messages')
+    print(messages)
+    # print(messages[0]["content"])
+
     if len(messages) <= 2:
         print("no con detected")
 
     data['message']= messages[-1]['content']
-    print(data["message"])
     links = extract_links(data['message'])
+    try:
+        data["systemMessage"]=messages[0]["content"]
+    except:
+        pass
     if links!= [] :
       print(links[0])
       data["imageURL"]=links[0]
@@ -127,6 +133,7 @@ def chat_completions():
       print("UPLOADING IMAGE..")
     elif processed_text !="":
         data["context"]=processed_text
+
 
 
     def stream_gpt4():
@@ -142,7 +149,7 @@ def chat_completions():
         ee=""
 
         try:
-            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=9)
+            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
             print(xx.text)
         except :
             model="gpt-3"
@@ -217,8 +224,8 @@ def chat_completions():
 
         if model=="gpt-3":
             yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-
             try:
+
                 prev_text = ""
 
                 for query in chatbot.ask(data["message"],):
@@ -256,7 +263,193 @@ def chat_completions():
     def stream_gpt3():
         global data
         prev_text = ""
+        # print(messages[-1]['content'])
+        for query in chatbot.ask(messages[-1]['content'],):
+            reply = query["message"][len(prev_text) :]
+            prev_text = query["message"]
+            print(reply)
+            yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
+    if "/clear" in data["message"] and "gpt-4" in model :
+        data=backup
+        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+    
+    if "/upload" in data["message"] and "gpt-4" in model :
+        return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
+    if "/context" in data["message"] and "gpt-4" in model :
+        return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
+    
+
+
+
+    if "gpt-4" in model :
+        return app.response_class(stream_gpt4(), mimetype='text/event-stream')
+    elif "gpt-3.5" in model :
+        return app.response_class(stream_gpt3(), mimetype='text/event-stream')
+        # return 'data: %s\n\n' % json.dumps(streamer(str(messages)), separators=(',' ':'))
+
+
+
+@app.route("/v1/chat/completions/", methods=['POST'])
+def chat_completions():
+    global data
+    global uploaded_image
+    global processed_text
+
+
+    streaming = request.json.get('stream', True)
+    model = request.json.get('model', 'gpt-4-web')
+
+
+    messages = request.json.get('messages')
+    print(messages)
+    # print(messages[0]["content"])
+
+    if len(messages) <= 2:
+        print("no con detected")
+
+    data['message']= messages[-1]['content']
+    links = extract_links(data['message'])
+    if links!= [] :
+      print(links[0])
+      data["imageURL"]=links[0]
+    elif uploaded_image!="":
+      data["imageBase64"]=uploaded_image
+      print("UPLOADING IMAGE..")
+    elif processed_text !="":
+        data["context"]=processed_text
+
+
+
+    def stream_gpt4():
+        global data
+        prev_word=""
+        global uploaded_image
+        global processed_text
+
+        t=time.time()
+        pattern = r'https:\s+//'
+
+        model="gpt-4"
+        ee=""
+
+        try:
+            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
+            print(xx.text)
+        except :
+            model="gpt-3"
+            yield 'data: %s\n\n' % json.dumps(streamer("> Falling back to gpt-3" +str(ee)), separators=(',' ':')) 
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n" +str(ee)), separators=(',' ':')) 
+
+            pass
+
+        if model == "gpt-4":
+
+            try:
+
+                with requests.post(api_endpoint, json=data, stream=True) as resp:
+                    for line in resp.iter_lines():
+                        if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                            line=line.decode()
+                            line=line.replace("://","ui34d")
+
+                            try:
+                                parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
+                            except Exception as e:
+                                parsed_data={"data":"."}
+                                model="gpt-3"
+                                print(e)
+                                ee=str(e)
+                            if parsed_data!={} and parsed_data.get("data") != None:
+                                print(parsed_data['data'])
+                                msg=parsed_data['data'].replace("ui34d","://")
+                                print(msg)
+                                
+                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
+
+                        elif line and "conversationId"  in line.decode():
+
+                            json_body = line.decode().replace("data: ","")
+                            json_body = json.loads(json_body)
+                            try:
+                                ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
+                                links = extract_links(ss)
+                                para="\n\n"
+                                x=0
+                                for lnk in links:
+                                    x=x+1
+                                    para=para+f"""[^{x}^]: {lnk}
+                                    
+"""
+                                a="Links:"
+                                for i in range(1,x+1):
+                                    a = a + f"""[^{i}^]"""
+                                msg="\n\n\n"+a+para
+                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
+
+                            except Exception as e:
+                                print(e)
+                                pass
+                            data['parentMessageId'] = json_body['messageId']
+                            print("Conversation history saved")
+
+            except Exception as e:
+                print(e)
+
+                prev_text = ""
+
+                for query in chatbot.ask(data["message"],):
+                    reply = query["message"][len(prev_text) :]
+                    prev_text = query["message"]
+                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+
+
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
+
+        if model=="gpt-3":
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+            try:
+
+                prev_text = ""
+
+                for query in chatbot.ask(data["message"],):
+                    reply = query["message"][len(prev_text) :]
+                    prev_text = query["message"]
+                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+
+
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':')) 
+            except:
+                yield 'data: %s\n\n' % json.dumps(streamer("> An Error Occured.Fallback failed." +str(ee)), separators=(',' ':')) 
+
+
+
+        try:    
+          del data["imageURL"]   
+        except:
+          pass
+        try:
+          uploaded_image=""
+          del data["imageBase64"]
+        except:
+            pass
+        if random.randint(1,4):
+            try:
+                processed_text=""
+                del data["context"]
+            except:
+                pass
+
+
+
+
+    def stream_gpt3():
+        global data
+        prev_text = ""
+        # print(messages[-1]['content'])
         for query in chatbot.ask(messages[-1]['content'],):
             reply = query["message"][len(prev_text) :]
             prev_text = query["message"]
@@ -274,14 +467,14 @@ def chat_completions():
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
     
     elif "gpt-4" in model and len(messages) <= 2:
-        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared❌'), separators=(',' ':'))
+        return app.response_class(stream_gpt3(), mimetype='text/event-stream')
 
 
     if "gpt-4" in model and len(messages) > 2:
         return app.response_class(stream_gpt4(), mimetype='text/event-stream')
     elif "gpt-3.5" in model :
         return app.response_class(stream_gpt3(), mimetype='text/event-stream')
-
+        # return 'data: %s\n\n' % json.dumps(streamer(str(messages)), separators=(',' ':'))
 
 
 
