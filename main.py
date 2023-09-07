@@ -291,8 +291,8 @@ def chat_completions():
 
 
 
-@app.route("/v1/chat/completions/", methods=['POST'])
-def chat_completions():
+@app.route("/v1/chat/completions", methods=['POST'])
+def chat_completions2():
     global data
     global uploaded_image
     global processed_text
