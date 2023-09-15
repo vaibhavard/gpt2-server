@@ -2,11 +2,19 @@ import json
 import requests
 import time
 import random
+import tiktoken
+import g4f
+import random
+
 uploaded_image=''
 processed_text=""
 #variables
 nline = False
 ans={}
+providers=[g4f.Provider.Aivvm,g4f.Provider.Ails,g4f.Provider.DeepAi]
+systemp=False
+
+
 api_endpoint = "https://intagpt.onrender.com/conversation"
 model = {
     "data": [
@@ -114,20 +122,33 @@ backup = {
     "systemMessage":prompt1
 }
 
+def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> int:
+    """Returns the number of tokens in a text string."""
+    encoding = tiktoken.get_encoding(encoding_name)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
 #functions
 def streamer(tok):
         completion_timestamp = int(time.time())
         completion_id = ''.join(random.choices(
             'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=28))
+        completion_tokens = num_tokens_from_string(tok)
 
         completion_data = {
             'id': f'chatcmpl-{completion_id}',
             'object': 'chat.completion.chunk',
             'created': completion_timestamp,
             'model': 'gpt-4',
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": completion_tokens,
+                "total_tokens": completion_tokens,
+            },
             'choices': [
                 {
                     'delta': {
+                        'role':"assistant",
                         'content':tok
                     },
                     'index': 0,
@@ -137,4 +158,33 @@ def streamer(tok):
         }
         return completion_data
 
+
+def output(tok):
+        completion_timestamp = int(time.time())
+        completion_id = ''.join(random.choices(
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=28))
+        completion_tokens = num_tokens_from_string(tok)
+
+        return {
+            'id': 'chatcmpl-%s' % completion_id,
+            'object': 'chat.completion',
+            'created': completion_timestamp,
+            'model': model,
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": completion_tokens,
+                "total_tokens": completion_tokens,
+            },
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': tok
+                },
+                'finish_reason': 'stop',
+                'index': 0
+            }]
+        }
+
+
 worded=""
+
