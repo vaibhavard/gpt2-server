@@ -5,99 +5,222 @@ from revChatGPT.V1 import Chatbot
 from flask import Flask, request, Response
 from flask_cors import CORS
 from helper import *
+import base64
 app = Flask(__name__)
 CORS(app)
-import base64
 chatbot = Chatbot(config={
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJha2lrby50ZWNoaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci1ZdmFzTXRWNkczV3Q1aVd0UXhYVW5jZ1IifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5NjAxMDY2NzU4Mzc5MjMwOTM0IiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY5MzQxNTIyMSwiZXhwIjoxNjk0NjI0ODIxLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9yZ2FuaXphdGlvbi53cml0ZSBvZmZsaW5lX2FjY2VzcyJ9.Vo_4IaIiPTM-wD82xCMMfGDssMUzomF3HEvPfdCFyDxAD9bpfgyu3KpF7iyxgOrABkwwqJUfVNRzf8axJgeiuLu18calKYHEOR8R0nZIE6Wcdme1xfwgHYNP0Nb67fqd8xjcVgqxWD8IIAcQwyxcd2Y-XutrGflpzwVUD4MsCMu9uJEOvD-hg0ZgggzP6j6bbXowDyLFQWoeAsC8pzfWhi3BbIUzGopg43gYjgrTJX05ZR8t12rRu4YhJqQeOIbPznLpDVjBBoH78MNRBpPlIZuVfQHXx_KzZyPKF7ghLmBw2R5Jw2zzI08AZQGfVWryWN2UldJz0dw_FYQOcooUDA"
 })
 
+from functions import allocate,extract_links,check
 
-def extract_links(text):
-    # Regular expression pattern to match URLs
-    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-
-    # Find all matches of the URL pattern in the text
-    urls = re.findall(url_pattern, text)
-    return urls
-
-
-
-def send_req():
-
+def gpt4(messages,model="gpt-4"):
     global data
-    global nline
-    global worded
-    ddgd=""
-    ee=""
-    worded=""
+    global uploaded_image
+    global processed_text
+
+    print(model)
+
+
     try:
+        xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
+        print(xx.text)
+    except :
+        model="gpt-3"
+        pass
 
-        with requests.post(api_endpoint, json=data, stream=True) as resp:
-            for line in resp.iter_lines():
-                if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                    line=line.decode()
-                    line=line.replace("://","ui34d")
+    if model == "gpt-4":
 
-                    try:
-                        parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
-                    except Exception as e:
-                        parsed_data={"data":"."}
-                        print(e)
+        try:
 
-                        ee=str(e)
-                    if parsed_data!={} and parsed_data.get("data") != None:
-                        print(parsed_data['data'])
-                        msg=parsed_data['data'].replace("ui34d","://")
-                        print(msg)
+            with requests.post(api_endpoint, json=data, stream=True) as resp:
+                for line in resp.iter_lines():
+                    if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                        line=line.decode()
+                        line=line.replace("://","ui34d")
 
-                        worded=worded+msg
-                    time.sleep(0.13)
-                elif line and "conversationId"  in line.decode():
-
-                    json_body = line.decode().replace("data: ","")
-                    json_body = json.loads(json_body)
-                    try:
-                        ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
-                        links = extract_links(ss)
-                        para="\n\n"
-                        x=0
-                        for lnk in links:
-                            x=x+1
-                            para=para+f"""[^{x}^]: {lnk}
+                        try:
+                            parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
+                        except Exception as e:
+                            parsed_data={"data":"."}
+                            model="gpt-3"
+                            print(e)
+                            ee=str(e)
+                        if parsed_data!={} and parsed_data.get("data") != None:
+                            print(parsed_data['data'])
+                            msg=parsed_data['data'].replace("ui34d","://")
+                            print(msg)
                             
-"""
-                        a="Links:"
-                        for i in range(1,x+1):
-                            a = a + f"""[^{i}^]"""
-                        worded=worded+"\n\n\n"+a+para
-                    except Exception as e:
-                        print(e)
-                        pass
-                    data['parentMessageId'] = json_body['messageId']
-                    print("Conversation history saved")
+                    elif line and "conversationId"  in line.decode():
+                        print("DOCEDED")
 
-    except Exception as e:
-        print(e)
+                        json_body = line.decode().replace("data: ","")
+                        json_body = json.loads(json_body)
+                        data['parentMessageId'] = json_body['messageId']
+                        return json_body['response']
+
+        except Exception as e:
+            model="gpt-3"
+
+
+    if model=="gpt-3":
+
+        for provider in providers:
+            try:
+
+                response = g4f.ChatCompletion.create(
+                    model="gpt-3.5-turbo",provider=provider ,
+                    messages=messages,
+                    stream=False)
+                return response
+            except:
+                pass
+
+
+
+    try:    
+        del data["imageURL"]   
+    except:
+        pass
+    try:
+        uploaded_image=""
+        del data["imageBase64"]
+    except:
+        pass
+    if random.randint(1,4):
+        try:
+            processed_text=""
+            del data["context"]
+        except:
+            pass
+
+def stream_gpt4(messages,model="gpt-4"):
+    print(model)
+    global data
+    global uploaded_image
+    global processed_text
+    global providers
+
+    ee=""
+
+    if "gpt-3" in check(api_endpoint):
+        model="gpt-3"
+
+    if model == "gpt-4":
+
+        try:
+
+            with requests.post(api_endpoint, json=data, stream=True) as resp:
+                for line in resp.iter_lines():
+                    if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
+                        line=line.decode()
+                        line=line.replace("://","ui34d")
+
+                        try:
+                            parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
+                        except Exception as e:
+                            parsed_data={"data":"."}
+                            model="gpt-3"
+                            print(e)
+                            ee=str(e)
+                        if parsed_data!={} and parsed_data.get("data") != None:
+                            msg=parsed_data['data'].replace("ui34d","://")
+                            
+                            yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
+
+                    elif line and "conversationId"  in line.decode():
+
+                        json_body = line.decode().replace("data: ","")
+                        json_body = json.loads(json_body)
+                        try:
+                            ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
+                            links = extract_links(ss)
+                            para="\n\n"
+                            x=0
+                            for lnk in links:
+                                x=x+1
+                                para=para+f"""[^{x}^]: {lnk}
+                                
+"""
+                            a="Links:"
+                            for i in range(1,x+1):
+                                a = a + f"""[^{i}^]"""
+                            msg="\n\n\n"+a+para
+                            yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
+
+                        except Exception as e:
+                            print(e)
+                            pass
+                        data['parentMessageId'] = json_body['messageId']
+                        print("Conversation history saved")
+
+        except Exception as e:
+            yield 'data: %s\n\n' % json.dumps(streamer("> Falling Back to GPT-3:"), separators=(',' ':'))
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+
+            prev_text = ""
+            try:
+
+                for query in chatbot.ask(data["message"],):
+                    reply = query["message"][len(prev_text) :]
+                    prev_text = query["message"]
+                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+
+
+                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
+            except:
+                prev_text = ""
+
+                for provider in providers:
+                    try:
+
+                        response = g4f.ChatCompletion.create(
+                            model="gpt-3.5-turbo",provider=provider ,
+                            messages=messages,
+                            stream=True,)
+                        for message in response:
+                            yield 'data: %s\n\n' % json.dumps(streamer(message), separators=(',' ':'))
+                        break
+                    except:
+                        pass
+
+
+
+    if model=="gpt-3":
+        yield 'data: %s\n\n' % json.dumps(streamer("> GPT-3:"), separators=(',' ':'))
+        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
         prev_text = ""
+        try:
 
-        for query in chatbot.ask(data["message"],):
-            reply = query["message"][len(prev_text) :]
-            prev_text = query["message"]
-            worded=worded+reply
-            time.sleep(0.13)
-
-        time.sleep(0.4)
-        worded=worded+"\n\n" + ">"+str(e)
-        time.sleep(0.1)
-        worded=""
+            for query in chatbot.ask(data["message"],):
+                reply = query["message"][len(prev_text) :]
+                prev_text = query["message"]
+                yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
 
 
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+            yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
+        except:
+            prev_text = ""
 
-    worded=ee
-    time.sleep(0.13)
-    worded=""
+            for provider in providers:
+                try:
+
+                    response = g4f.ChatCompletion.create(
+                        model="gpt-3.5-turbo",provider=provider ,
+                        messages=messages,
+                        stream=True,)
+                    for message in response:
+                        yield 'data: %s\n\n' % json.dumps(streamer(message), separators=(',' ':'))
+                    break
+                except:
+                    pass
+
+
+
+
 
 
 
@@ -106,188 +229,59 @@ def chat_completions():
     global data
     global uploaded_image
     global processed_text
+    global  systemp
+    systemp=True
 
-
-    streaming = request.json.get('stream', True)
+    streaming = request.json.get('stream', False)
     model = request.json.get('model', 'gpt-4-web')
-
-
     messages = request.json.get('messages')
-    print(messages)
-    # print(messages[0]["content"])
+    
+    
+    allocate(messages,data,uploaded_image,processed_text,systemp)
 
-    if len(messages) <= 2:
-        print("no con detected")
-
-    data['message']= messages[-1]['content']
-    links = extract_links(data['message'])
-    try:
-        data["systemMessage"]=messages[0]["content"]
-    except:
-        pass
-    if links!= [] :
-      print(links[0])
-      data["imageURL"]=links[0]
-    elif uploaded_image!="":
-      data["imageBase64"]=uploaded_image
-      print("UPLOADING IMAGE..")
-    elif processed_text !="":
-        data["context"]=processed_text
-
-
-
-    def stream_gpt4():
-        global data
-        prev_word=""
-        global uploaded_image
-        global processed_text
-
-        t=time.time()
-        pattern = r'https:\s+//'
-
-        model="gpt-4"
-        ee=""
-
-        try:
-            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
-            print(xx.text)
-        except :
-            model="gpt-3"
-            yield 'data: %s\n\n' % json.dumps(streamer("> Falling back to gpt-3" +str(ee)), separators=(',' ':')) 
-            yield 'data: %s\n\n' % json.dumps(streamer("\n\n" +str(ee)), separators=(',' ':')) 
-
-            pass
-
-        if model == "gpt-4":
-
-            try:
-
-                with requests.post(api_endpoint, json=data, stream=True) as resp:
-                    for line in resp.iter_lines():
-                        if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                            line=line.decode()
-                            line=line.replace("://","ui34d")
-
-                            try:
-                                parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
-                            except Exception as e:
-                                parsed_data={"data":"."}
-                                model="gpt-3"
-                                print(e)
-                                ee=str(e)
-                            if parsed_data!={} and parsed_data.get("data") != None:
-                                print(parsed_data['data'])
-                                msg=parsed_data['data'].replace("ui34d","://")
-                                print(msg)
-                                
-                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
-
-                        elif line and "conversationId"  in line.decode():
-
-                            json_body = line.decode().replace("data: ","")
-                            json_body = json.loads(json_body)
-                            try:
-                                ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
-                                links = extract_links(ss)
-                                para="\n\n"
-                                x=0
-                                for lnk in links:
-                                    x=x+1
-                                    para=para+f"""[^{x}^]: {lnk}
-                                    
-"""
-                                a="Links:"
-                                for i in range(1,x+1):
-                                    a = a + f"""[^{i}^]"""
-                                msg="\n\n\n"+a+para
-                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
-
-                            except Exception as e:
-                                print(e)
-                                pass
-                            data['parentMessageId'] = json_body['messageId']
-                            print("Conversation history saved")
-
-            except Exception as e:
-                print(e)
-
-                prev_text = ""
-
-                for query in chatbot.ask(data["message"],):
-                    reply = query["message"][len(prev_text) :]
-                    prev_text = query["message"]
-                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-
-
-                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
-
-        if model=="gpt-3":
-            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-            try:
-
-                prev_text = ""
-
-                for query in chatbot.ask(data["message"],):
-                    reply = query["message"][len(prev_text) :]
-                    prev_text = query["message"]
-                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-
-
-                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':')) 
-            except:
-                yield 'data: %s\n\n' % json.dumps(streamer("> An Error Occured.Fallback failed." +str(ee)), separators=(',' ':')) 
-
-
-
-        try:    
-          del data["imageURL"]   
-        except:
-          pass
-        try:
-          uploaded_image=""
-          del data["imageBase64"]
-        except:
-            pass
-        if random.randint(1,4):
-            try:
-                processed_text=""
-                del data["context"]
-            except:
-                pass
-
-
-
-
-    def stream_gpt3():
-        global data
-        prev_text = ""
-        # print(messages[-1]['content'])
-        for query in chatbot.ask(messages[-1]['content'],):
-            reply = query["message"][len(prev_text) :]
-            prev_text = query["message"]
-            print(reply)
-            yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
     if "/clear" in data["message"] and "gpt-4" in model :
-        data=backup
+        del data["parentMessageId"]   
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+    
+    if "/log" in data["message"]  :
+
+        return 'data: %s\n\n' % json.dumps(streamer(str(data)), separators=(',' ':'))
+
+    if "/prompt" in data["message"]  :
+
+        if systemp == False:
+            systemp=True
+        else:
+            systemp=False
+        
+        return 'data: %s\n\n' % json.dumps(streamer(f"Systemprompt is  {systemp}"), separators=(',' ':'))
+
     
     if "/upload" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
     
+    elif "gpt-4" in model and len(messages) <= 2 and streaming:
+        return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
 
+    elif "gpt-4" in model and len(messages) <= 2 and not streaming:
+        print("USING GPT_4 NO STREAM")
+        k=gpt4(messages)
+        print(k)
+        return output(k)
 
-
-    if "gpt-4" in model :
-        return app.response_class(stream_gpt4(), mimetype='text/event-stream')
-    elif "gpt-3.5" in model :
-        return app.response_class(stream_gpt3(), mimetype='text/event-stream')
-        # return 'data: %s\n\n' % json.dumps(streamer(str(messages)), separators=(',' ':'))
+    elif "gpt-4" in model and len(messages) > 2 and not streaming:
+        print("USING GPT_4 NO STREAM")
+        k=gpt4(messages)
+        print(k)
+        return output(k)
+    
+    if "gpt-4" in model and len(messages) > 2 and streaming:
+        return app.response_class(stream_gpt4(messages), mimetype='text/event-stream')
+    elif "gpt-3" in model :
+        return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
 
 
 
@@ -296,184 +290,59 @@ def chat_completions2():
     global data
     global uploaded_image
     global processed_text
-
+    global     systemp
 
     streaming = request.json.get('stream', True)
     model = request.json.get('model', 'gpt-4-web')
-
-
     messages = request.json.get('messages')
-    print(messages)
-    # print(messages[0]["content"])
+    print(model)
+    
+    
+    allocate(messages,data,uploaded_image,processed_text,systemp)
 
-    if len(messages) <= 2:
-        print("no con detected")
-
-    data['message']= messages[-1]['content']
-    links = extract_links(data['message'])
-    if links!= [] :
-      print(links[0])
-      data["imageURL"]=links[0]
-    elif uploaded_image!="":
-      data["imageBase64"]=uploaded_image
-      print("UPLOADING IMAGE..")
-    elif processed_text !="":
-        data["context"]=processed_text
-
-
-
-    def stream_gpt4():
-        global data
-        prev_word=""
-        global uploaded_image
-        global processed_text
-
-        t=time.time()
-        pattern = r'https:\s+//'
-
-        model="gpt-4"
-        ee=""
-
-        try:
-            xx = requests.get(api_endpoint.replace("/conversation",""),timeout=15)
-            print(xx.text)
-        except :
-            model="gpt-3"
-            yield 'data: %s\n\n' % json.dumps(streamer("> Falling back to gpt-3" +str(ee)), separators=(',' ':')) 
-            yield 'data: %s\n\n' % json.dumps(streamer("\n\n" +str(ee)), separators=(',' ':')) 
-
-            pass
-
-        if model == "gpt-4":
-
-            try:
-
-                with requests.post(api_endpoint, json=data, stream=True) as resp:
-                    for line in resp.iter_lines():
-                        if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
-                            line=line.decode()
-                            line=line.replace("://","ui34d")
-
-                            try:
-                                parsed_data = json.loads("{" + line.replace(":", ": ").replace("data", "\"data\"",1) + "}")
-                            except Exception as e:
-                                parsed_data={"data":"."}
-                                model="gpt-3"
-                                print(e)
-                                ee=str(e)
-                            if parsed_data!={} and parsed_data.get("data") != None:
-                                print(parsed_data['data'])
-                                msg=parsed_data['data'].replace("ui34d","://")
-                                print(msg)
-                                
-                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
-
-                        elif line and "conversationId"  in line.decode():
-
-                            json_body = line.decode().replace("data: ","")
-                            json_body = json.loads(json_body)
-                            try:
-                                ss = json_body["details"]["adaptiveCards"][0]["body"][1]["text"].replace(")","")
-                                links = extract_links(ss)
-                                para="\n\n"
-                                x=0
-                                for lnk in links:
-                                    x=x+1
-                                    para=para+f"""[^{x}^]: {lnk}
-                                    
-"""
-                                a="Links:"
-                                for i in range(1,x+1):
-                                    a = a + f"""[^{i}^]"""
-                                msg="\n\n\n"+a+para
-                                yield 'data: %s\n\n' % json.dumps(streamer(msg), separators=(',' ':'))
-
-                            except Exception as e:
-                                print(e)
-                                pass
-                            data['parentMessageId'] = json_body['messageId']
-                            print("Conversation history saved")
-
-            except Exception as e:
-                print(e)
-
-                prev_text = ""
-
-                for query in chatbot.ask(data["message"],):
-                    reply = query["message"][len(prev_text) :]
-                    prev_text = query["message"]
-                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-
-
-                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':'))
-
-        if model=="gpt-3":
-            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-            try:
-
-                prev_text = ""
-
-                for query in chatbot.ask(data["message"],):
-                    reply = query["message"][len(prev_text) :]
-                    prev_text = query["message"]
-                    yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-
-
-                yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                yield 'data: %s\n\n' % json.dumps(streamer("> " +str(ee)), separators=(',' ':')) 
-            except:
-                yield 'data: %s\n\n' % json.dumps(streamer("> An Error Occured.Fallback failed." +str(ee)), separators=(',' ':')) 
-
-
-
-        try:    
-          del data["imageURL"]   
-        except:
-          pass
-        try:
-          uploaded_image=""
-          del data["imageBase64"]
-        except:
-            pass
-        if random.randint(1,4):
-            try:
-                processed_text=""
-                del data["context"]
-            except:
-                pass
-
-
-
-
-    def stream_gpt3():
-        global data
-        prev_text = ""
-        # print(messages[-1]['content'])
-        for query in chatbot.ask(messages[-1]['content'],):
-            reply = query["message"][len(prev_text) :]
-            prev_text = query["message"]
-            print(reply)
-            yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
-        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
     if "/clear" in data["message"] and "gpt-4" in model :
-        data=backup
+        del data["parentMessageId"]   
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+    
+    if "/log" in data["message"]  :
+
+        return 'data: %s\n\n' % json.dumps(streamer(str(data)), separators=(',' ':'))
+
+    if "/prompt" in data["message"]  :
+
+        if systemp == False:
+            systemp=True
+        else:
+            systemp=False
+        
+        return 'data: %s\n\n' % json.dumps(streamer(f"Systemprompt is  {systemp}"), separators=(',' ':'))
+
     
     if "/upload" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
     
-    elif "gpt-4" in model and len(messages) <= 2:
-        return app.response_class(stream_gpt3(), mimetype='text/event-stream')
+    elif "gpt-4" in model and len(messages) <= 2 and streaming:
+        return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
 
+    elif "gpt-4" in model and len(messages) <= 2 and not streaming:
+        print("USING GPT_4 NO STREAM")
+        k=gpt4(messages,"gpt-3")
+        print(k)
+        return output(k)
 
-    if "gpt-4" in model and len(messages) > 2:
-        return app.response_class(stream_gpt4(), mimetype='text/event-stream')
-    elif "gpt-3.5" in model :
-        return app.response_class(stream_gpt3(), mimetype='text/event-stream')
+    elif "gpt-4" in model and len(messages) > 2 and not streaming:
+        print("USING GPT_4 NO STREAM")
+        k=gpt4(messages)
+        print(k)
+        return output(k)
+    
+    if "gpt-4" in model and len(messages) > 2 and streaming:
+        return app.response_class(stream_gpt4(messages), mimetype='text/event-stream')
+    elif "gpt-3" in model :
+        return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
         # return 'data: %s\n\n' % json.dumps(streamer(str(messages)), separators=(',' ':'))
 
 
