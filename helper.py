@@ -11,9 +11,220 @@ processed_text=""
 #variables
 nline = False
 ans={}
-providers=[g4f.Provider.Aivvm,g4f.Provider.Ails,g4f.Provider.DeepAi]
+providers=[g4f.Provider.Aivvm,g4f.Provider.Ails]
 systemp=False
 
+flowchat="""
+You are a plant uml flowchart creator.you create flowchart similar to below manner:
+@startuml
+
+object Wearable01
+object Wearable02
+object Wearable03
+object Wearable04
+object Wearable05
+object Wearable06
+
+object MGDSPET_protocol
+object UserData_server
+
+Wearable01 -- MGDSPET_protocol
+Wearable02 -- MGDSPET_protocol
+Wearable03 -- MGDSPET_protocol
+Wearable04 -- MGDSPET_protocol
+Wearable05 -- MGDSPET_protocol
+Wearable06 -- MGDSPET_protocol
+
+MGDSPET_protocol -- UserData_server
+
+@enduml
+"""
+
+flowchat="""
+You are a plant uml flowchart creator.Always output code in a plantuml code block.You create flowchart similar to below manner:
+@startuml
+
+object Wearable01
+object Wearable02
+object Wearable03
+object Wearable04
+object Wearable05
+object Wearable06
+
+object MGDSPET_protocol
+object UserData_server
+
+Wearable01 -- MGDSPET_protocol
+Wearable02 -- MGDSPET_protocol
+Wearable03 -- MGDSPET_protocol
+Wearable04 -- MGDSPET_protocol
+Wearable05 -- MGDSPET_protocol
+Wearable06 -- MGDSPET_protocol
+
+MGDSPET_protocol -- UserData_server
+
+@enduml
+"""
+
+linechat="""
+You are a plant uml flowchart creator.Always output code in a plantuml code block.You create flowchart similar to below manner:
+@startuml
+
+skinparam rectangle {
+	BackgroundColor DarkSeaGreen
+	FontStyle Bold
+	FontColor DarkGreen
+}
+
+:User: as u
+rectangle Tool as t
+rectangle "Knowledge Base" as kb
+(Robot Framework) as rf
+(DUT) as dut
+
+note as ts
+	test script
+end note
+
+note as act
+	query
+	&
+	action
+end note
+
+note as t_cmt
+	- This is a sample note
+end note
+
+note as kb_cmt
+	-  Knowledge base is about bla bla bla..
+end note
+
+u --> rf
+rf =right=> ts
+ts =down=> t
+
+kb <=left=> act
+act <=up=> t
+
+t = dut
+
+t_cmt -- t
+kb_cmt -left- kb
+@enduml
+"""
+
+complexchat="""
+You are a plant uml flowchart creator.Always output code in a plantuml code block.You create flowchart similar to below manner:
+@startuml
+title Servlet Container
+
+(*) --> "ClickServlet.handleRequest()"
+--> "new Page"
+
+if "Page.onSecurityCheck" then
+  ->[true] "Page.onInit()"
+
+  if "isForward?" then
+   ->[no] "Process controls"
+
+   if "continue processing?" then
+     -->[yes] ===RENDERING===
+   else
+     -->[no] ===REDIRECT_CHECK===
+   endif
+
+  else
+   -->[yes] ===RENDERING===
+  endif
+
+  if "is Post?" then
+    -->[yes] "Page.onPost()"
+    --> "Page.onRender()" as render
+    --> ===REDIRECT_CHECK===
+  else
+    -->[no] "Page.onGet()"
+    --> render
+  endif
+
+else
+  -->[false] ===REDIRECT_CHECK===
+endif
+
+if "Do redirect?" then
+ ->[yes] "redirect request"
+ --> ==BEFORE_DESTROY===
+else
+ if "Do Forward?" then
+  -left->[yes] "Forward request"
+  --> ==BEFORE_DESTROY===
+ else
+  -right->[no] "Render page template"
+  --> ==BEFORE_DESTROY===
+ endif
+endif
+
+--> "Page.onDestroy()"
+-->(*)
+
+@enduml
+"""
+
+mindprompt='''Create a mermaid mindmap based on user input like these examples:
+mindmap
+\t\troot(("leisure activities weekend"))
+\t\t\t\t["spend time with friends"]
+\t\t\t\t::icon(fafa fa-users)
+\t\t\t\t\t\t("action activities")
+\t\t\t\t\t\t::icon(fafa fa-play)
+\t\t\t\t\t\t\t\t("dancing at night club")
+\t\t\t\t\t\t\t\t("going to a restaurant")
+\t\t\t\t\t\t\t\t("go to the theater")
+\t\t\t\t["spend time your self"]
+\t\t\t\t::icon(fa fa-fa-user)
+\t\t\t\t\t\t("meditation")
+\t\t\t\t\t\t::icon(fa fa-om)
+\t\t\t\t\t\t("\`take a sunbath ☀️\`")
+\t\t\t\t\t\t("reading a book")
+\t\t\t\t\t\t::icon(fa fa-book)
+text summary mindmap:
+Barack Obama (born August 4, 1961) is an American politician who served as the 44th president of the United States from 2009 to 2017. A member of the Democratic Party, he was the first African-American president of the United States.
+mindmap
+\troot("Barack Obama")
+\t\t("Born August 4, 1961")
+\t\t::icon(fa fa-baby-carriage)
+\t\t("American Politician")
+\t\t\t::icon(fa fa-flag)
+\t\t\t\t("44th President of the United States")
+\t\t\t\t\t("2009 - 2017")
+\t\t("Democratic Party")
+\t\t\t::icon(fa fa-democrat)
+\t\t("First African-American President")
+cause and effects mindmap:
+mindmap
+\troot("Landlord sells apartment")
+\t\t::icon(fa fa-sell)
+\t\t("Renter must be notified of sale")
+\t\t::icon(fa fa-envelope)
+\t\t\t("Tenants may feel some uncertainty")
+\t\t\t::icon(fa fa-question-circle)
+\t\t("Notice periods must be observed")
+\t\t::icon(fa fa-calendar)
+\t\t\t("Landlord can submit notice of termination for personal use")
+\t\t\t::icon(fa fa-home)
+\t\t\t\t("Tenant has to look for a new apartment")
+\t\t\t\t::icon(fa fa-search)
+\t\t("New owner")
+\t\t::icon(fa fa-user)
+\t\t\t\t("New owner takes over existing rental agreement")
+\t\t\t\t::icon(fa fa-file-contract)
+\t\t\t\t\t\t("Tenant keeps previous apartment")
+\t\t\t\t\t\t::icon(fa fa-handshake)
+\t\t\t\t("New owner terminates newly concluded lease")
+\t\t\t\t::icon(fa fa-ban)
+\t\t\t\t\t\t("Tenant has to look for a new apartment")
+\t\t\t\t\t\t::icon(fa fa-search)
+Only one root, use free FontAwesome icons, and follow node types "[", "(". No need to use "mermaid", "\`\`\`", or "graph TD". Respond only with code and syntax.ALWAYS OUTPUT CODE IN CODE BLOCKS.'''
 
 api_endpoint = "https://intagpt.onrender.com/conversation"
 model = {
