@@ -2,7 +2,8 @@ import os
 import threading
 import re
 from revChatGPT.V1 import Chatbot
-from flask import Flask, request, Response
+from flask import Flask, Response
+from flask import request as req
 from flask_cors import CORS
 from helper import *
 import base64
@@ -12,7 +13,39 @@ chatbot = Chatbot(config={
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJha2lrby50ZWNoaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci1ZdmFzTXRWNkczV3Q1aVd0UXhYVW5jZ1IifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5NjAxMDY2NzU4Mzc5MjMwOTM0IiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY5MzQxNTIyMSwiZXhwIjoxNjk0NjI0ODIxLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9yZ2FuaXphdGlvbi53cml0ZSBvZmZsaW5lX2FjY2VzcyJ9.Vo_4IaIiPTM-wD82xCMMfGDssMUzomF3HEvPfdCFyDxAD9bpfgyu3KpF7iyxgOrABkwwqJUfVNRzf8axJgeiuLu18calKYHEOR8R0nZIE6Wcdme1xfwgHYNP0Nb67fqd8xjcVgqxWD8IIAcQwyxcd2Y-XutrGflpzwVUD4MsCMu9uJEOvD-hg0ZgggzP6j6bbXowDyLFQWoeAsC8pzfWhi3BbIUzGopg43gYjgrTJX05ZR8t12rRu4YhJqQeOIbPznLpDVjBBoH78MNRBpPlIZuVfQHXx_KzZyPKF7ghLmBw2R5Jw2zzI08AZQGfVWryWN2UldJz0dw_FYQOcooUDA"
 })
 
-from functions import allocate,extract_links,check
+from functions import allocate,extract_links,check,mm
+
+
+def send_req(msg,prompt):
+    global worded 
+    if "/mindmap" in msg:
+        prompt=mindprompt
+        tmap="/mindmap"
+    elif "/branchchart" in msg:
+        prompt="You are a PlantUML Diagram Creator.Output Only Plantuml code in a code block for the requested diagram by the user.Make sure the code and the syntax is correct."
+        tmap="/branchchart"
+    worded=""
+    worded=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
+
+
+
+def grapher(msg):
+    global worded
+    t=time.time()
+
+    t1 = threading.Thread(target=send_req,args=(msg,))
+    t1.start()
+    sent=False
+    while worded=="":
+        if 10>time.time()-t>9 and not sent:
+            yield 'data: %s\n\n' % json.dumps(streamer("> Your request is being processed."), separators=(',' ':'))
+            sent=True
+        if sent:
+            yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
+            time.sleep(1)    
+
+    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+    yield 'data: %s\n\n' % json.dumps(streamer(worded), separators=(',' ':'))
 
 def gpt4(messages,model="gpt-4"):
     global data
@@ -72,6 +105,7 @@ def gpt4(messages,model="gpt-4"):
                     model="gpt-3.5-turbo",provider=provider ,
                     messages=messages,
                     stream=False)
+                print(response)
                 return response
             except:
                 pass
@@ -232,9 +266,9 @@ def chat_completions():
     global  systemp
     systemp=True
 
-    streaming = request.json.get('stream', False)
-    model = request.json.get('model', 'gpt-4-web')
-    messages = request.json.get('messages')
+    streaming = req.json.get('stream', False)
+    model = req.json.get('model', 'gpt-4-web')
+    messages = req.json.get('messages')
     
     
     allocate(messages,data,uploaded_image,processed_text,systemp)
@@ -257,9 +291,19 @@ def chat_completions():
         
         return 'data: %s\n\n' % json.dumps(streamer(f"Systemprompt is  {systemp}"), separators=(',' ':'))
 
-    
+
+
     if "/upload" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
+    
+    # if "/mindmap" in data["message"]  :
+    #     yield 'data: %s\n\n' % json.dumps(streamer("> Your request is being processed."), separators=(',' ':'))
+    #     yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+    #     reply=mm(gpt4([{"role": "system", "content": f"{mindprompt}"},{"role": "user", "content": f"{data['message'].replace('/graph','')}"}],"gpt-3"))
+    #     yield 'data: %s\n\n' % json.dumps(streamer(reply), separators=(',' ':'))
+
+
+    
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
     
@@ -292,9 +336,9 @@ def chat_completions2():
     global processed_text
     global     systemp
 
-    streaming = request.json.get('stream', True)
-    model = request.json.get('model', 'gpt-4-web')
-    messages = request.json.get('messages')
+    streaming = req.json.get('stream', True)
+    model = req.json.get('model', 'gpt-4-web')
+    messages = req.json.get('messages')
     print(model)
     
     
@@ -318,12 +362,28 @@ def chat_completions2():
         
         return 'data: %s\n\n' % json.dumps(streamer(f"Systemprompt is  {systemp}"), separators=(',' ':'))
 
+#     if "/help" in data["message"]  :
+#         yield 'data: %s\n\n' % json.dumps(streamer("""
+# >Developer Options:
+# **/log  /prompt  /clear  /upload  /context**
+# >Graphs
+# **/mindmap  /flowchart  /complexchart  /linechart  /branchchart**"""), separators=(',' ':'))
     
     if "/upload" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
+    if "/mindmap" in data["message"] or "/branchchart" in data["message"] :
+        return app.response_class(grapher(data["message"]), mimetype='text/event-stream')
     
+    elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] :
+        if "/flowchart" in  data["message"]:
+            return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
+        if "/complexchart" in  data["message"]:
+            return app.response_class(stream_gpt4([{"role": "system", "content": f"{complexchat}"},{"role": "user", "content": f"{data['message'].replace('/complexchart','')}"}],"gpt-3"), mimetype='text/event-stream')
+        if "/flowchart" in  data["message"]:
+            return app.response_class(stream_gpt4([{"role": "system", "content": f"{linechat}"},{"role": "user", "content": f"{data['message'].replace('/linechat','')}"}],"gpt-3"), mimetype='text/event-stream')
+
     elif "gpt-4" in model and len(messages) <= 2 and streaming:
         return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
 
@@ -360,7 +420,7 @@ def hello_name(name):
 @app.route('/context', methods=['POST'])
 def my_form_post():
     global processed_text
-    text = request.form['text']
+    text = req.form['text']
     processed_text = text
     return "The context has been added."
 
@@ -376,10 +436,10 @@ def my_form():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     global uploaded_image
-    if request.method == 'POST': 
-        if 'file1' not in request.files: 
+    if req.method == 'POST': 
+        if 'file1' not in req.files: 
             return 'there is no file1 in form!'
-        file1 = request.files['file1']
+        file1 = req.files['file1']
         content = file1.read()
         b64 = base64.b64encode(content)
         uploaded_image=b64.decode()
