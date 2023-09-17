@@ -16,16 +16,13 @@ systemp=False
 
 catmap="""
 Create a mermaid timeline based on user input like these examples.Always output code in codeblock.:
-
-  journey
-    title My working day
-    section Go to work
-      Make tea: 5: Me
-      Go upstairs: 3: Me
-      Do work: 1: Me, Cat
-    section Go home
-      Go downstairs: 5: Me
-      Sit down: 3: Me
+timeline
+    title History of Social Media Platform
+    2002 : LinkedIn
+    2004 : Facebook
+         : Google
+    2005 : Youtube
+    2006 : Twitter
 """
 mermap="""
 You are a mermaid diagram creator.Write code for mermaid diagram as per the users request and always output the code in a codeblock.:
