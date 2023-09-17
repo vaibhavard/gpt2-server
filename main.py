@@ -24,6 +24,9 @@ def send_req(msg):
     elif "/branchchart" in msg:
         prompt=mermap
         tmap="/branchchart"
+    elif "/timeline" in msg:
+        prompt=catmap
+        tmap="/timeline"
     worded=""
     worded=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
 
@@ -373,7 +376,7 @@ def chat_completions2():
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
-    if "/mindmap" in data["message"] or "/branchchart" in data["message"] :
+    if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] :
         return app.response_class(grapher(data["message"]), mimetype='text/event-stream')
     
     elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] :
