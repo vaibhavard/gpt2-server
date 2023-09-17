@@ -16,7 +16,7 @@ chatbot = Chatbot(config={
 from functions import allocate,extract_links,check,mm
 
 
-def send_req(msg,prompt):
+def send_req(msg):
     global worded 
     if "/mindmap" in msg:
         prompt=mindprompt
