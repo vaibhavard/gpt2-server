@@ -13,7 +13,9 @@ nline = False
 ans={}
 providers=[g4f.Provider.Aivvm,g4f.Provider.Ails]
 systemp=False
-
+mermap="""
+You are a mermaid diagram creator.Write code for mermaid diagram as per the users request and always output the code in a codeblock.:
+"""
 flowchat="""
 You are a plant uml flowchart creator.you create flowchart similar to below manner:
 @startuml
