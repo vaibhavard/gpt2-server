@@ -16,7 +16,7 @@ systemp=False
 
 catmap=
 """
-Create a mermaid jounrey map based on user input like these examples.Always output code in codeblock.:
+Create a mermaid timeline based on user input like these examples.Always output code in codeblock.:
 
   journey
     title My working day
