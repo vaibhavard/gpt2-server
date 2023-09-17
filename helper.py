@@ -14,8 +14,7 @@ ans={}
 providers=[g4f.Provider.Aivvm,g4f.Provider.Ails]
 systemp=False
 
-catmap=
-"""
+catmap="""
 Create a mermaid timeline based on user input like these examples.Always output code in codeblock.:
 
   journey
