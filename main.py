@@ -381,7 +381,7 @@ def chat_completions2():
             return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
         if "/complexchart" in  data["message"]:
             return app.response_class(stream_gpt4([{"role": "system", "content": f"{complexchat}"},{"role": "user", "content": f"{data['message'].replace('/complexchart','')}"}],"gpt-3"), mimetype='text/event-stream')
-        if "/flowchart" in  data["message"]:
+        if "/linechart" in  data["message"]:
             return app.response_class(stream_gpt4([{"role": "system", "content": f"{linechat}"},{"role": "user", "content": f"{data['message'].replace('/linechat','')}"}],"gpt-3"), mimetype='text/event-stream')
 
     elif "gpt-4" in model and len(messages) <= 2 and streaming:
