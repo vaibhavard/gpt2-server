@@ -1,6 +1,24 @@
 import re
-import requests
 from helper import prompt1
+import base64
+import requests
+def mm(graph): 
+    graph=graph.replace("mermaid","")
+    graph=graph.replace("markdown","")
+
+    pattern = r"```(.+?)```"
+    match = re.search(pattern, graph, flags=re.DOTALL)
+    if match: 
+        graph = match.group(1)
+        print(graph)
+    else: 
+        print("No match found")
+        return "Error.Try Again."
+    graphbytes = graph.encode("ascii")
+    base64_bytes = base64.b64encode(graphbytes)
+    base64_string = base64_bytes.decode("ascii")
+    return "![]"+"("+"https://mermaid.ink/img/" + base64_string+")"
+
 def extract_links(text):
     # Regular expression pattern to match URLs
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
