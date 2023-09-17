@@ -22,7 +22,7 @@ def send_req(msg,prompt):
         prompt=mindprompt
         tmap="/mindmap"
     elif "/branchchart" in msg:
-        prompt="You are a PlantUML Diagram Creator.Output Only Plantuml code in a code block for the requested diagram by the user.Make sure the code and the syntax is correct."
+        prompt=mermap
         tmap="/branchchart"
     worded=""
     worded=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
