@@ -2,6 +2,7 @@ import re
 from helper import prompt1
 import base64
 import requests
+import json
 def mm(graph): 
     graph=graph.replace("mermaid","")
     graph=graph.replace("markdown","")
@@ -17,7 +18,11 @@ def mm(graph):
     graphbytes = graph.encode("ascii")
     base64_bytes = base64.b64encode(graphbytes)
     base64_string = base64_bytes.decode("ascii")
-    return "![]"+"("+"https://mermaid.ink/img/" + base64_string+")"
+    r = requests.get("https://mermaid.ink/img/" + base64_string)
+    if "invalid encoded" in r.text:
+       return "ERROR in encoding123" 
+    else:
+      return "![]"+"("+"https://mermaid.ink/img/" + base64_string+")"
 
 def extract_links(text):
     # Regular expression pattern to match URLs
@@ -54,5 +59,15 @@ def check(api_endpoint):
         return "gpt-3"
         pass
 
+def ask(query,prompt,api_endpoint):
+  python_boolean_to_json = {
+    "true": True,
+  }
+  data = {
+      'jailbreakConversationId': json.dumps(python_boolean_to_json['true']),
+      "systemMessage":prompt,
+      "message":query
 
-
+  }
+  resp=requests.post(api_endpoint, json=data) 
+  return resp.json()["response"]
