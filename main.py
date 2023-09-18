@@ -32,6 +32,9 @@ def send_req(msg,model):
 
     if "gpt-4" in model:
         for i in range(1,5):
+            if i==5:
+                worded="Failed because max tries exceed!.Try rephrasing Your prompt."
+                break
             collect=mm(ask(msg.replace(tmap,''),mermprompt.format(instructions=prompt),api_endpoint))
             if "ERROR in encoding123" not in collect:
                 worded=collect
@@ -42,6 +45,9 @@ def send_req(msg,model):
         print("GPT_4")
     else:
         for i in range(1,5):
+            if i==5:
+                worded="Failed because max tries exceed!.Try rephrasing Your prompt."
+                break
             collect=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
             if "ERROR in encoding123" not in collect:
                 worded=collect
