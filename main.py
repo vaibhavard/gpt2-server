@@ -13,11 +13,13 @@ chatbot = Chatbot(config={
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJha2lrby50ZWNoaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci1ZdmFzTXRWNkczV3Q1aVd0UXhYVW5jZ1IifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5NjAxMDY2NzU4Mzc5MjMwOTM0IiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY5MzQxNTIyMSwiZXhwIjoxNjk0NjI0ODIxLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9yZ2FuaXphdGlvbi53cml0ZSBvZmZsaW5lX2FjY2VzcyJ9.Vo_4IaIiPTM-wD82xCMMfGDssMUzomF3HEvPfdCFyDxAD9bpfgyu3KpF7iyxgOrABkwwqJUfVNRzf8axJgeiuLu18calKYHEOR8R0nZIE6Wcdme1xfwgHYNP0Nb67fqd8xjcVgqxWD8IIAcQwyxcd2Y-XutrGflpzwVUD4MsCMu9uJEOvD-hg0ZgggzP6j6bbXowDyLFQWoeAsC8pzfWhi3BbIUzGopg43gYjgrTJX05ZR8t12rRu4YhJqQeOIbPznLpDVjBBoH78MNRBpPlIZuVfQHXx_KzZyPKF7ghLmBw2R5Jw2zzI08AZQGfVWryWN2UldJz0dw_FYQOcooUDA"
 })
 
-from functions import allocate,extract_links,check,mm
+from functions import allocate,extract_links,check,mm,ask
 
 
-def send_req(msg):
+def send_req(msg,model):
     global worded 
+    worded=""
+
     if "/mindmap" in msg:
         prompt=mindprompt
         tmap="/mindmap"
@@ -27,16 +29,36 @@ def send_req(msg):
     elif "/timeline" in msg:
         prompt=catmap
         tmap="/timeline"
-    worded=""
-    worded=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
+
+    if "gpt-4" in model:
+        for i in range(1,5):
+            collect=mm(ask(msg.replace(tmap,''),mermprompt.format(instructions=prompt),api_endpoint))
+            if "ERROR in encoding123" not in collect:
+                worded=collect
+                break
+            else:
+                worded=""
+                print("invalid context")
+        print("GPT_4")
+    else:
+        for i in range(1,5):
+            collect=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
+            if "ERROR in encoding123" not in collect:
+                worded=collect
+                break
+            else:
+                worded=""
+                print("invalid context")
+
+        print("GPT_3")
 
 
 
-def grapher(msg):
+def grapher(msg,model):
     global worded
     t=time.time()
 
-    t1 = threading.Thread(target=send_req,args=(msg,))
+    t1 = threading.Thread(target=send_req,args=(msg,model,))
     t1.start()
     sent=False
     while worded=="":
@@ -65,7 +87,7 @@ def gpt4(messages,model="gpt-4"):
         model="gpt-3"
         pass
 
-    if model == "gpt-4":
+    if "gpt-4" in model:
 
         try:
 
@@ -99,7 +121,7 @@ def gpt4(messages,model="gpt-4"):
             model="gpt-3"
 
 
-    if model=="gpt-3":
+    if "gpt-3" in model:
 
         for provider in providers:
             try:
@@ -350,6 +372,8 @@ def chat_completions2():
 
     if "/clear" in data["message"] and "gpt-4" in model :
         del data["parentMessageId"]   
+        del data["systemMessage"]   
+
         return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
     
     if "/log" in data["message"]  :
@@ -365,27 +389,45 @@ def chat_completions2():
         
         return 'data: %s\n\n' % json.dumps(streamer(f"Systemprompt is  {systemp}"), separators=(',' ':'))
 
-#     if "/help" in data["message"]  :
-#         yield 'data: %s\n\n' % json.dumps(streamer("""
-# >Developer Options:
-# **/log  /prompt  /clear  /upload  /context**
-# >Graphs
-# **/mindmap  /flowchart  /complexchart  /linechart  /branchchart**"""), separators=(',' ':'))
+    if "/help" in data["message"]  :
+        return 'data: %s\n\n' % json.dumps(streamer("""
+>Developer Options:
+**/log  /prompt  /clear  /upload  /context**
+                                                    
+>Graphs
+**/mindmap  /flowchart  /complexchart  /linechart  /branchchart**"""), separators=(',' ':'))
     
     if "/upload" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
     if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] :
-        return app.response_class(grapher(data["message"]), mimetype='text/event-stream')
+        return app.response_class(grapher(data["message"],model), mimetype='text/event-stream')
     
     elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] :
-        if "/flowchart" in  data["message"]:
-            return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
-        if "/complexchart" in  data["message"]:
-            return app.response_class(stream_gpt4([{"role": "system", "content": f"{complexchat}"},{"role": "user", "content": f"{data['message'].replace('/complexchart','')}"}],"gpt-3"), mimetype='text/event-stream')
-        if "/linechart" in  data["message"]:
-            return app.response_class(stream_gpt4([{"role": "system", "content": f"{linechat}"},{"role": "user", "content": f"{data['message'].replace('/linechat','')}"}],"gpt-3"), mimetype='text/event-stream')
+        if "gpt-3" in model:
+            if "/flowchart" in  data["message"]:
+                return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
+            if "/complexchart" in  data["message"]:
+                return app.response_class(stream_gpt4([{"role": "system", "content": f"{complexchat}"},{"role": "user", "content": f"{data['message'].replace('/complexchart','')}"}],"gpt-3"), mimetype='text/event-stream')
+            if "/linechart" in  data["message"]:
+                return app.response_class(stream_gpt4([{"role": "system", "content": f"{linechat}"},{"role": "user", "content": f"{data['message'].replace('/linechat','')}"}],"gpt-3"), mimetype='text/event-stream')
+        elif "gpt-4" in model:
+
+            if "/flowchart" in  data["message"]:
+                data["message"]=data["message"].replace("/flowchart","")
+                data["systemMessage"]=mermprompt.format(instructions=flowchat)
+            if "/complexchart" in  data["message"]:
+                data["message"]=data["message"].replace("/complexchart","")
+                data["systemMessage"]=mermprompt.format(instructions=complexchat)
+
+            if "/linechart" in  data["message"]:
+                data["message"]=data["message"].replace("/linechart","")
+                data["systemMessage"]=mermprompt.format(instructions=linechat)
+
+            return app.response_class(stream_gpt4(messages,"gpt-4"), mimetype='text/event-stream')
+
+
 
     elif "gpt-4" in model and len(messages) <= 2 and streaming:
         return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
