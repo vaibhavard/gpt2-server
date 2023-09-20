@@ -69,7 +69,7 @@ def grapher(msg,model):
     sent=False
     while worded=="":
         if 10>time.time()-t>9 and not sent:
-            yield 'data: %s\n\n' % json.dumps(streamer("> Your request is being processed."), separators=(',' ':'))
+            yield 'data: %s\n\n' % json.dumps(streamer(">Please wait."), separators=(',' ':'))
             sent=True
         if sent:
             yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
@@ -217,9 +217,19 @@ def stream_gpt4(messages,model="gpt-4"):
                             print(e)
                             pass
                         data['parentMessageId'] = json_body['messageId']
+                        type_flow=gpt4([{"role": "system", "content": "You group the questions asked by user into various subcategories as mentioned."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
+                        print(type_flow)
+                        if "none" not in type_flow:
+                            if "mindmap" in type_flow:
+                                type_flow="/mindmap"
+                                yield from grapher(type_flow+" " + initial_instruction.format(help=type_flow.replace("/",""))+messages[-1]['content'],"gpt-3")
+                            else:
+                                yield from grapher("/branchchart"+" " + initial_instruction.format(help=type_flow)+messages[-1]['content'],"gpt-3")
+
                         print("Conversation history saved")
 
         except Exception as e:
+            print(e)
             yield 'data: %s\n\n' % json.dumps(streamer("> Falling Back to GPT-3:"), separators=(',' ':'))
             yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
 
