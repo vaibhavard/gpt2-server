@@ -19,7 +19,7 @@ def mm(graph):
     base64_bytes = base64.b64encode(graphbytes)
     base64_string = base64_bytes.decode("ascii")
     r = requests.get("https://mermaid.ink/img/" + base64_string)
-    if "invalid encoded" in r.text:
+    if "invalid encoded" in r.text or  "Not Found" in r.text:
        return "ERROR in encoding123" 
     else:
       return "![]"+"("+"https://mermaid.ink/img/" + base64_string+")"
