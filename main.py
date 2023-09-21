@@ -220,7 +220,7 @@ def stream_gpt4(messages,model="gpt-4"):
                         type_flow=gpt4([{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
                         print(type_flow)
                         if "none" not in type_flow:
-                            if "mindmap" in type_flow:
+                            if "mindmap" in type_flow or "mind map" in type_flow:
                                 yield from grapher("/mindmap "+type_flow,"gpt-3")
                             else:
                                 yield from grapher("/branchchart "+type_flow,"gpt-3")
