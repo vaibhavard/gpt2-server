@@ -217,14 +217,13 @@ def stream_gpt4(messages,model="gpt-4"):
                             print(e)
                             pass
                         data['parentMessageId'] = json_body['messageId']
-                        type_flow=gpt4([{"role": "system", "content": "You group the questions asked by user into various subcategories as mentioned."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
+                        type_flow=gpt4([{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
                         print(type_flow)
                         if "none" not in type_flow:
                             if "mindmap" in type_flow:
-                                type_flow="/mindmap"
-                                yield from grapher(type_flow+" " + initial_instruction.format(help=type_flow.replace("/",""))+messages[-1]['content'],"gpt-3")
+                                yield from grapher("/mindmap "+type_flow,"gpt-3")
                             else:
-                                yield from grapher("/branchchart"+" " + initial_instruction.format(help=type_flow)+messages[-1]['content'],"gpt-3")
+                                yield from grapher("/branchchart "+type_flow,"gpt-3")
 
                         print("Conversation history saved")
 
@@ -417,10 +416,10 @@ def chat_completions2():
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
-    if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] and streaming:
+    if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] :
         return app.response_class(grapher(data["message"],model), mimetype='text/event-stream')
     
-    elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] and streaming:
+    elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] :
         if "gpt-3" in model:
             if "/flowchart" in  data["message"]:
                 return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
