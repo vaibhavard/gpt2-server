@@ -14,7 +14,7 @@ ans={}
 #g4f.Provider.Yqcloud,
 providers=[ g4f.Provider.Yqcloud,g4f.Provider.Aivvm,g4f.Provider.Ails]
 systemp=False
-initial_instruction="Create a {help} on the below topic:\n"
+initial_instruction="Create a {help} on the TOPIC given in the below question:\n"
 type_flowchart="""
 Which of these [process-flowchart,decision-flowchart,sequence diagram,mindmaps,piechart,timeline,swimlane-flowchart,none] will help in better understanding the topics asked in the below question asked by the user(Only output the type AND NOTHING ELSE.).
 Only output diagram type if it will actually help.Else return none.
