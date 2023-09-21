@@ -417,10 +417,10 @@ def chat_completions2():
         return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
         return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
-    if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] :
+    if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] and streaming:
         return app.response_class(grapher(data["message"],model), mimetype='text/event-stream')
     
-    elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] :
+    elif "/flowchart" in data["message"] or "/complexchart" in data["message"] or  "/linechart" in data["message"] and streaming:
         if "gpt-3" in model:
             if "/flowchart" in  data["message"]:
                 return app.response_class(stream_gpt4([{"role": "system", "content": f"{flowchat}"},{"role": "user", "content": f"{data['message'].replace('/flowchart','')}"}],"gpt-3"), mimetype='text/event-stream')
