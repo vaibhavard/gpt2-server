@@ -16,7 +16,7 @@ providers=[g4f.Provider.Yqcloud,g4f.Provider.Aivvm,g4f.Provider.Ails]
 systemp=False
 # initial_instruction="Create a {help} on the below topic:\n"
 type_flowchart="""
-Write a prompt to ask an AI to create a  [process-flowchart,decision-flowchart,sequence diagram,mindmaps,piechart,timeline,swimlane-flowchart,none](any one relevant) for the below question.Only ask to create a diagram and nothing else.
+Write a prompt to ask an AI to create a  [process-flowchart,decision-flowchart,mindmaps,piechart,timeline,swimlane-flowchart,none](any one relevant) for the below question.Only ask to create a diagram and nothing else.
 Output none if diagram not relevant or not required .
 Eg:
 User:
