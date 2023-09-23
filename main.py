@@ -20,6 +20,18 @@ def send_req(msg,model):
     global worded 
     worded=""
 
+    if "/" not in msg:
+        type_flow=gpt4([{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
+        if "none" not in type_flow:
+            if "mindmap" in type_flow or "mind map" in type_flow:
+                msg ="/mindmap "+type_flow
+            else:
+                msg = "/branchchart "+type_flow
+        else:
+            worded="."
+            msg="none"
+    print(type_flow)
+
     if "/mindmap" in msg:
         prompt=mindprompt
         tmap="/mindmap"
@@ -30,11 +42,8 @@ def send_req(msg,model):
         prompt=catmap
         tmap="/timeline"
 
-    if "gpt-4" in model:
-        for i in range(1,5):
-            if i==5:
-                worded="Failed because max tries exceed!.Try rephrasing Your prompt."
-                break
+    if "gpt-4" in model and msg!="none":
+        for i in range(1,3):
             collect=mm(ask(msg.replace(tmap,''),mermprompt.format(instructions=prompt),api_endpoint))
             if "ERROR in encoding123" not in collect:
                 worded=collect
@@ -42,12 +51,14 @@ def send_req(msg,model):
             else:
                 worded=""
                 print("invalid context")
-        print("GPT_4")
-    else:
-        for i in range(1,5):
-            if i==5:
+            if i==3:
+                time.sleep(2)
                 worded="Failed because max tries exceed!.Try rephrasing Your prompt."
                 break
+        print("GPT_4")
+    elif msg!="none":
+        for i in range(1,3):
+
             collect=mm(gpt4([{"role": "system", "content": f"{prompt}"},{"role": "user", "content": f"{msg.replace(tmap,'')}"}],"gpt-3"))
             if "ERROR in encoding123" not in collect:
                 worded=collect
@@ -55,7 +66,10 @@ def send_req(msg,model):
             else:
                 worded=""
                 print("invalid context")
-
+            if i==3:
+                time.sleep(2)
+                worded="Failed because max tries exceed!.Try rephrasing Your prompt."
+                break
         print("GPT_3")
 
 
@@ -73,7 +87,28 @@ def grapher(msg,model):
             sent=True
         if sent:
             yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
+            time.sleep(1)
+        if 100<time.time():
+            break
+    
+
+    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+    yield 'data: %s\n\n' % json.dumps(streamer(worded), separators=(',' ':'))
+
+def grapher2():
+    global worded
+    t=time.time()
+    sent=False
+    while worded=="":
+        if 4>time.time()-t>3 and not sent:
+            yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+            yield 'data: %s\n\n' % json.dumps(streamer(">Please wait."), separators=(',' ':'))
+            sent=True
+        if sent:
+            yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
             time.sleep(1)    
+        if 100<time.time():
+            break
 
     yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
     yield 'data: %s\n\n' % json.dumps(streamer(worded), separators=(',' ':'))
@@ -82,7 +117,6 @@ def gpt4(messages,model="gpt-4"):
     global data
     global uploaded_image
     global processed_text
-
     print(model)
 
 
@@ -165,7 +199,8 @@ def stream_gpt4(messages,model="gpt-4"):
     global uploaded_image
     global processed_text
     global providers
-
+    t2 = threading.Thread(target=send_req,args=(data["message"],model,))
+    t2.start()
     ee=""
 
     if "gpt-3" in check(api_endpoint):
@@ -217,13 +252,7 @@ def stream_gpt4(messages,model="gpt-4"):
                             print(e)
                             pass
                         data['parentMessageId'] = json_body['messageId']
-                        type_flow=gpt4([{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": type_flowchart.format(question=data["message"])}],"gpt-3").lower()
-                        print(type_flow)
-                        if "none" not in type_flow:
-                            if "mindmap" in type_flow or "mind map" in type_flow:
-                                yield from grapher("/mindmap "+type_flow,"gpt-3")
-                            else:
-                                yield from grapher("/branchchart "+type_flow,"gpt-3")
+                        yield from grapher2()
 
                         print("Conversation history saved")
 
