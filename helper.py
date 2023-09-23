@@ -17,12 +17,18 @@ systemp=False
 # initial_instruction="Create a {help} on the below topic:\n"
 type_flowchart="""
 Write a prompt to ask an AI to create a  [process-flowchart,decision-flowchart,mindmaps,piechart,timeline,swimlane-flowchart,none](any one relevant) for the below question.Only ask to create a diagram and nothing else.
-Output none if diagram not relevant or not required .
+You must Output none if diagram not relevant or not required . Ask the AI to create diagram only if really required .
+Note:For rephrases , meanings , mathematical and science questions , what is questions , general factual queries , output none.
 Eg:
 User:
-who is vivek vijay vice president global network and edge consult kyndryl?
+List the steps for vmware upgrade process.
 Your Output:
-Create a process-flowchart about Vivek Vijay, Vice President of Global Network and Edge Consulting at Kyndryl.
+Create a process-flowchart about vmware upgrade process and the steps involved in it.
+User:
+What is the meaning of life?
+Your Output:
+none (as a text answer is sufficent)
+
 User:
 {question}
 Your Output:
