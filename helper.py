@@ -18,10 +18,10 @@ systemp=False
 type_flowchart="""
 Write a prompt to ask an AI to create a  [process-flowchart,decision-flowchart,mindmaps,piechart,timeline,swimlane-flowchart,none](any one relevant) for the below question.Only ask to create a diagram and nothing else.
 You must Output none if diagram not relevant or not required . Ask the AI to create diagram only if really required .
-Note:For rephrases , mathematical and science questions ,  , general factual queries , output none.
+Note:For rephrases , mathematical and science questions , definitive queries , general factual queries , output none.
 Eg:
 User:
-List the steps for vmware upgrade process.
+what is the vmware upgrade process.
 Your Output:
 Create a process-flowchart about vmware upgrade process and the steps involved in it.
 User:
