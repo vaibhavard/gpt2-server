@@ -5,4 +5,4 @@ revchatgpt
 gunicorn>=20.1.0
 g4f
 tiktoken
-execjs
+PyExecJS
