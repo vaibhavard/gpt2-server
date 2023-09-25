@@ -1,5 +1,5 @@
 import re
-from helper import prompt1
+from helper import prompt1,noprompt
 import base64
 import requests
 import json
@@ -32,13 +32,16 @@ def extract_links(text):
     urls = re.findall(url_pattern, text)
     return urls
 
-def allocate(messages,data,uploaded_image,processed_text,systemp):
+def allocate(messages,data,uploaded_image,processed_text,systemp,model):
     data['message']= messages[-1]['content']
     print(data["message"])
     if systemp:
       data["systemMessage"]=messages[0]["content"]
+    elif model=='gpt-4':
+      data["systemMessage"]=noprompt
     else:
-      data["systemMessage"]=prompt1
+        data["systemMessage"]=prompt1       
+        
 
     links = extract_links(data['message'])
     if links!= [] :
