@@ -340,7 +340,7 @@ def chat_completions():
     messages = req.json.get('messages')
     
     
-    allocate(messages,data,uploaded_image,processed_text,systemp)
+    allocate(messages,data,uploaded_image,processed_text,systemp,model)
 
 
     if "/clear" in data["message"] and "gpt-4" in model :
@@ -411,7 +411,7 @@ def chat_completions2():
     print(model)
     
     
-    allocate(messages,data,uploaded_image,processed_text,systemp)
+    allocate(messages,data,uploaded_image,processed_text,systemp,model)
 
 
     if "/clear" in data["message"] and "gpt-4" in model :
