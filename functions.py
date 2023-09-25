@@ -40,7 +40,7 @@ def allocate(messages,data,uploaded_image,processed_text,systemp,model):
     elif model=='gpt-4':
       data["systemMessage"]=noprompt
     else:
-        data["systemMessage"]=prompt1       
+      data["systemMessage"]=prompt1       
         
 
     links = extract_links(data['message'])
