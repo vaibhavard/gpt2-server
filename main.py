@@ -199,15 +199,15 @@ def stream_gpt4(messages,model="gpt-4"):
     global uploaded_image
     global processed_text
     global providers
-    t2 = threading.Thread(target=send_req,args=(data["message"],model,))
-    t2.start()
+
     ee=""
 
     if "gpt-3" in check(api_endpoint):
         model="gpt-3"
 
     if model == "gpt-4":
-
+        t2 = threading.Thread(target=send_req,args=(data["message"],"gpt-3",))
+        t2.start()
         try:
 
             with requests.post(api_endpoint, json=data, stream=True) as resp:
