@@ -51,6 +51,7 @@ def allocate(messages,data,uploaded_image,processed_text,systemp,model):
       data["imageBase64"]=uploaded_image
       print("UPLOADING IMAGE..")
     elif processed_text !="":
+        data['jailbreakConversationId']: 'false',
         data["context"]=processed_text
 
 def check(api_endpoint):
