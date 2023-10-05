@@ -251,7 +251,9 @@ def stream_gpt4(messages,model="gpt-4"):
                         except Exception as e:
                             print(e)
                             pass
-                        data['parentMessageId'] = json_body['messageId']
+                        if data["context"]!="":
+                            data['parentMessageId'] = json_body['messageId']
+                            
                         yield from grapher2()
 
                         print("Conversation history saved")
@@ -363,7 +365,11 @@ def chat_completions():
 
 
     if "/upload" in data["message"] and "gpt-4" in model :
-        return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
+        up="""
+<!DOCTYPE html>
+<embed src="https://intagpt.up.railway.app/upload" style="width:1000px; height: 500px;">
+"""
+        return 'data: %s\n\n' % json.dumps(streamer(up), separators=(',' ':'))
     
     # if "/mindmap" in data["message"]  :
     #     yield 'data: %s\n\n' % json.dumps(streamer("> Your request is being processed."), separators=(',' ':'))
@@ -374,7 +380,11 @@ def chat_completions():
 
     
     if "/context" in data["message"] and "gpt-4" in model :
-        return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
+        cont="""
+<!DOCTYPE html>
+<embed src="https://intagpt.up.railway.app/context" style="width:1000px; height: 500px;">
+"""
+        return 'data: %s\n\n' % json.dumps(streamer(cont), separators=(',' ':'))
     
     elif "gpt-4" in model and len(messages) <= 2 and streaming:
         return app.response_class(stream_gpt4(messages,"gpt-3"), mimetype='text/event-stream')
@@ -416,9 +426,14 @@ def chat_completions2():
 
     if "/clear" in data["message"] and "gpt-4" in model :
         del data["parentMessageId"]   
-        icon="(history)"
+        icon="()"
 
-        del data["systemMessage"]   
+
+        try:
+            del data["systemMessage"]   
+            icon=icon+"(history)"
+        except:
+            pass
         try:
             processed_text=""
             del data["context"]
