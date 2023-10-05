@@ -12,7 +12,7 @@ processed_text=""
 nline = False
 ans={}
 #g4f.Provider.Yqcloud,
-providers=[g4f.Provider.Yqcloud,g4f.Provider.Aivvm,g4f.Provider.Ails]
+providers=[g4f.Provider.AItianhu,g4f.Provider.Aivvm,g4f.Provider.Ails,g4f.Provider.Acytoo]
 systemp=False
 # initial_instruction="Create a {help} on the below topic:\n"
 type_flowchart="""
