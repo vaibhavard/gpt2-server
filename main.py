@@ -213,7 +213,7 @@ def stream_gpt4(messages,model="gpt-4"):
         try:
           
             with requests.post(api_endpoint, json=data, stream=True) as resp:
-                if  uploaded_image!= '':
+                if True :
                   
                   yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
                   yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
