@@ -51,7 +51,7 @@ def allocate(messages,data,uploaded_image,processed_text,systemp,model):
       print(links[0])
       data["imageURL"]=links[0]
     elif uploaded_image!="":
-      data["imageBase64"]=uploaded_image
+      data["imageURL"]=uploaded_image
       print("UPLOADING IMAGE..")
     elif processed_text !="":
       data['jailbreakConversationId']: json.dumps(python_boolean_to_json['false'])
