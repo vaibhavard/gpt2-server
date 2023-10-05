@@ -213,18 +213,17 @@ def stream_gpt4(messages,model="gpt-4"):
         try:
           
             with requests.post(api_endpoint, json=data, stream=True) as resp:
-                try:
-                    if "image" in data["message"] or "picture" in data["message"] or uploaded_image!= '':
-                        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                        yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
-                        for i in range(5):
-                            time.sleep(2)
-                            yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
-
-                        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                except Exception as e:
-                    print(e)
-                    pass
+                if  uploaded_image!= '':
+                  
+                  yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                  yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
+                  for i in range(5):
+                    time.sleep(2)
+                    yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
+                  yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                
+                    
+                    
 
                 for line in resp.iter_lines():
                     if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
