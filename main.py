@@ -7,6 +7,8 @@ from flask import request as req
 from flask_cors import CORS
 from helper import *
 import base64
+from base64 import b64encode
+import pyimgur
 app = Flask(__name__)
 CORS(app)
 chatbot = Chatbot(config={
@@ -211,7 +213,7 @@ def stream_gpt4(messages,model="gpt-4"):
         try:
           
             with requests.post(api_endpoint, json=data, stream=True) as resp:
-                if data["imageURL"] !="" or  data["imageBase64"] !="":
+                if data["imageURL"] !="" or  data["imageBase64"] !="" or "/image" in data["message"]:
                     yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
                     yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
                     for i in range(4):
@@ -575,12 +577,14 @@ def upload():
             return 'there is no file1 in form!'
         file1 = req.files['file1']
         content = file1.read()
-        b64 = base64.b64encode(content)
-        uploaded_image=b64.decode()
-        return "Image has been uploaded."
+        data = b64encode(content)
+        client = pyimgur.Imgur("47bb97a5e0f539c")
+        r = client._send_request('https://api.imgur.com/3/image', method='POST', params={'image': data})
+        uploaded_image=r['link']
+        return f"Image has been uploaded and your question can now be asked. ({r['link']})"
 
     return '''
-    <h1>Upload new File</h1>
+    <h1>Upload new Image</h1>
     <form method="post" enctype="multipart/form-data">
       <input type="file" name="file1">
       <input type="submit">
