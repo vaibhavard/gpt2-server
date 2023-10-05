@@ -489,9 +489,17 @@ def chat_completions2():
 **/mindmap  /flowchart  /complexchart  /linechart  /branchchart**"""), separators=(',' ':'))
     
     if "/upload" in data["message"] and "gpt-4" in model :
-        return 'data: %s\n\n' % json.dumps(streamer('Upload here -> https://intagpt.up.railway.app/upload'), separators=(',' ':'))
+        up="""
+<!DOCTYPE html>
+<embed src="https://intagpt.up.railway.app/upload" style="width:1000px; height: 500px;">
+"""
+        return 'data: %s\n\n' % json.dumps(streamer(up), separators=(',' ':'))
     if "/context" in data["message"] and "gpt-4" in model :
-        return 'data: %s\n\n' % json.dumps(streamer('Add context here -> https://intagpt.up.railway.app/context'), separators=(',' ':'))
+        cont="""
+<!DOCTYPE html>
+<embed src="https://intagpt.up.railway.app/context" style="width:1000px; height: 500px;">
+"""
+        return 'data: %s\n\n' % json.dumps(streamer(cont), separators=(',' ':'))
     if "/mindmap" in data["message"] or "/branchchart" in data["message"] or "/timeline" in data["message"] :
         return app.response_class(grapher(data["message"],model), mimetype='text/event-stream')
     
