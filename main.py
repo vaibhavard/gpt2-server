@@ -425,12 +425,12 @@ def chat_completions2():
 
 
     if "/clear" in data["message"] and "gpt-4" in model :
-        del data["parentMessageId"]   
         icon="()"
+        del data["systemMessage"]   
 
 
         try:
-            del data["systemMessage"]   
+            del data["parentMessageId"]   
             icon=icon+"(history)"
         except:
             pass
@@ -452,7 +452,7 @@ def chat_completions2():
             icon=icon+"(imageurl)"
         except:
             pass
-        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅ '+icon), separators=(',' ':'))
+        return 'data: %s\n\n' % json.dumps(streamer('Cleared✅ '+icon), separators=(',' ':'))
     
     if "/log" in data["message"]  :
 
