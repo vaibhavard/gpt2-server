@@ -222,7 +222,8 @@ def stream_gpt4(messages,model="gpt-4"):
                             yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
 
                         yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                except:
+                except Exception as e:
+                    print(e)
                     pass
 
                 for line in resp.iter_lines():
