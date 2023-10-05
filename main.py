@@ -214,7 +214,7 @@ def stream_gpt4(messages,model="gpt-4"):
           
             with requests.post(api_endpoint, json=data, stream=True) as resp:
                 try:
-                    if "image" in data["message"] or "picture" in data["message"]:
+                    if "image" in data["message"] or "picture" in data["message"] or uploaded_image!= '':
                         yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
                         yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
                         for i in range(5):
