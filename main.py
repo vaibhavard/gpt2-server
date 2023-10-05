@@ -378,8 +378,7 @@ def chat_completions():
 
 
     if "/upload" in data["message"] and "gpt-4" in model :
-        up="""
-<!DOCTYPE html>
+        up="""<!DOCTYPE html>
 <embed src="https://intagpt.up.railway.app/upload" style="width:1000px; height: 500px;">
 """
         return 'data: %s\n\n' % json.dumps(streamer(up), separators=(',' ':'))
@@ -393,8 +392,7 @@ def chat_completions():
 
     
     if "/context" in data["message"] and "gpt-4" in model :
-        cont="""
-<!DOCTYPE html>
+        cont="""<!DOCTYPE html>
 <embed src="https://intagpt.up.railway.app/context" style="width:1000px; height: 500px;">
 """
         return 'data: %s\n\n' % json.dumps(streamer(cont), separators=(',' ':'))
