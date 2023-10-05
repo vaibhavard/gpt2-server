@@ -416,9 +416,28 @@ def chat_completions2():
 
     if "/clear" in data["message"] and "gpt-4" in model :
         del data["parentMessageId"]   
-        del data["systemMessage"]   
+        icon="(history)"
 
-        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅'), separators=(',' ':'))
+        del data["systemMessage"]   
+        try:
+            processed_text=""
+            del data["context"]
+            icon=icon+"(context)"
+        except:
+            pass
+        try:
+            uploaded_image=""
+            del data["imageBase64"]
+            icon=icon+"(image)"
+
+        except:
+            pass
+        try:
+            del data["imageURL"]
+            icon=icon+"(imageurl)"
+        except:
+            pass
+        return 'data: %s\n\n' % json.dumps(streamer('Conversation History Cleared✅ '+icon), separators=(',' ':'))
     
     if "/log" in data["message"]  :
 
@@ -436,7 +455,7 @@ def chat_completions2():
     if "/help" in data["message"]  :
         return 'data: %s\n\n' % json.dumps(streamer("""
 >Developer Options:
-**/log  /prompt  /clear  /upload  /context**
+**/log  /prompt  /clear  /upload  /context /image**
                                                     
 >Graphs
 **/mindmap  /flowchart  /complexchart  /linechart  /branchchart**"""), separators=(',' ':'))
