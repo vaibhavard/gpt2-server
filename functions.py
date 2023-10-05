@@ -47,14 +47,18 @@ def allocate(messages,data,uploaded_image,processed_text,systemp,model):
         
 
     links = extract_links(data['message'])
-    if links!= [] :
+    if links!= [] and "/image" in data['message']:
       print(links[0])
       data["imageURL"]=links[0]
     elif uploaded_image!="":
       data["imageBase64"]=uploaded_image
       print("UPLOADING IMAGE..")
     elif processed_text !="":
-      data['jailbreakConversationId']: json.dumps(python_boolean_to_json['false']) 
+      data['jailbreakConversationId']: json.dumps(python_boolean_to_json['false'])
+      try:
+         del data['jailbreakConversationId']
+      except:
+         pass
       data["context"]=processed_text
 
 def check(api_endpoint):
