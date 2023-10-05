@@ -213,14 +213,17 @@ def stream_gpt4(messages,model="gpt-4"):
         try:
           
             with requests.post(api_endpoint, json=data, stream=True) as resp:
-                if data["imageURL"] !="" or  data["imageBase64"] !="" or "/image" in data["message"]:
-                    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
-                    yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
-                    for i in range(4):
-                        time.sleep(2)
-                        yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
+                try:
+                    if "image" in data["message"] or "picture" in data["message"]:
+                        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                        yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
+                        for i in range(5):
+                            time.sleep(2)
+                            yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
 
-                    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                        yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                except:
+                    pass
 
                 for line in resp.iter_lines():
                     if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
@@ -378,7 +381,8 @@ def chat_completions():
 
 
     if "/upload" in data["message"] and "gpt-4" in model :
-        up="""<!DOCTYPE html>
+        up="""
+<!DOCTYPE html>
 <embed src="https://intagpt.up.railway.app/upload" style="width:1000px; height: 500px;">
 """
         return 'data: %s\n\n' % json.dumps(streamer(up), separators=(',' ':'))
@@ -392,7 +396,8 @@ def chat_completions():
 
     
     if "/context" in data["message"] and "gpt-4" in model :
-        cont="""<!DOCTYPE html>
+        cont="""
+<!DOCTYPE html>
 <embed src="https://intagpt.up.railway.app/context" style="width:1000px; height: 500px;">
 """
         return 'data: %s\n\n' % json.dumps(streamer(cont), separators=(',' ':'))
