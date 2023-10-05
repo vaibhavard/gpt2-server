@@ -209,8 +209,17 @@ def stream_gpt4(messages,model="gpt-4"):
         t2 = threading.Thread(target=send_req,args=(data["message"],"gpt-3",))
         t2.start()
         try:
-
+          
             with requests.post(api_endpoint, json=data, stream=True) as resp:
+                if data["imageURL"] !="" or  data["imageBase64"] !="":
+                    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+                    yield 'data: %s\n\n' % json.dumps(streamer("> Analysing the image🖼️"), separators=(',' ':'))
+                    for i in range(4):
+                        time.sleep(2)
+                        yield 'data: %s\n\n' % json.dumps(streamer("."), separators=(',' ':'))
+
+                    yield 'data: %s\n\n' % json.dumps(streamer("\n\n"), separators=(',' ':'))
+
                 for line in resp.iter_lines():
                     if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
                         line=line.decode()
@@ -257,6 +266,8 @@ def stream_gpt4(messages,model="gpt-4"):
                         yield from grapher2()
 
                         print("Conversation history saved")
+
+
 
         except Exception as e:
             print(e)
