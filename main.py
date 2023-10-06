@@ -214,7 +214,7 @@ def stream_gpt4(messages,model="gpt-4"):
           yield 'data: %s\n\n' % json.dumps(streamer("Analysing the images..\n\n"), separators=(',' ':'))
         try:
           
-            with requests.post(api_endpoint, json=data, stream=True) as resp:
+            with requests.post(api_endpoint, json=data, stream=True,timeout=1000) as resp:
                 for line in resp.iter_lines():
                     if line and "result" not in line.decode() and "conversationId" not in line.decode() and "[DONE]" not in line.decode():
                         line=line.decode()
