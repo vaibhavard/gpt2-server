@@ -210,8 +210,6 @@ def stream_gpt4(messages,model="gpt-4"):
     if model == "gpt-4":
         t2 = threading.Thread(target=send_req,args=(data["message"],"gpt-3",))
         t2.start()
-        if uploaded_image!="":
-          yield 'data: %s\n\n' % json.dumps(streamer("Analysing the images..\n\n"), separators=(',' ':'))
         try:
           
             with requests.post(api_endpoint, json=data, stream=True,timeout=1000) as resp:
@@ -255,8 +253,10 @@ def stream_gpt4(messages,model="gpt-4"):
                         except Exception as e:
                             print(e)
                             pass
-                        if data["context"]!="":
+                        try:
                             data['parentMessageId'] = json_body['messageId']
+                        except:
+                          pass
                             
                         yield from grapher2()
 
